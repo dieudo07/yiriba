@@ -17,7 +17,7 @@ class AppEnvironment(str, Enum):
 
     @classmethod
     def _missing_(cls, value: object):
-        """Tolère les variantes : 'Production', 'PROD', 'dev', '' ..."""
+        """Tolère les variantes et coquilles : 'Production', 'PROD', 'profuction', '' ..."""
         if not isinstance(value, str):
             return None
         v = value.strip().lower()
@@ -31,7 +31,12 @@ class AppEnvironment(str, Enum):
             "stage": cls.STAGING,
             "test": cls.DEVELOPMENT,
         }
-        return aliases.get(v)
+        if v in aliases:
+            return aliases[v]
+        # Correspondance approximative pour les typos (ex. 'profuction')
+        import difflib
+        match = difflib.get_close_matches(v, list(aliases.keys()), n=1, cutoff=0.6)
+        return aliases[match[0]] if match else None
 
 
 class Settings(BaseSettings):
