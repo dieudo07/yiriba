@@ -15,6 +15,24 @@ class AppEnvironment(str, Enum):
     STAGING = "staging"
     PRODUCTION = "production"
 
+    @classmethod
+    def _missing_(cls, value: object):
+        """Tolère les variantes : 'Production', 'PROD', 'dev', '' ..."""
+        if not isinstance(value, str):
+            return None
+        v = value.strip().lower()
+        aliases = {
+            "prod": cls.PRODUCTION,
+            "production": cls.PRODUCTION,
+            "dev": cls.DEVELOPMENT,
+            "developement": cls.DEVELOPMENT,
+            "development": cls.DEVELOPMENT,
+            "staging": cls.STAGING,
+            "stage": cls.STAGING,
+            "test": cls.DEVELOPMENT,
+        }
+        return aliases.get(v)
+
 
 class Settings(BaseSettings):
     """Application settings — loaded from .env or environment variables."""

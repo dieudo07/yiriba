@@ -101,10 +101,16 @@ async def security_headers(request: Request, call_next) -> Response:  # type: ig
 cors_origins = settings.cors_origins_list
 cors_allow_credentials = "*" not in cors_origins
 if settings.is_production and "*" in cors_origins:
-    raise RuntimeError(
-        "CORS_ORIGINS=* est interdit en production. "
-        "Listez explicitement les domaines du frontend dans .env."
+    # Le SPA étant servi par la même origine que l'API, le CORS est inutile
+    # en déploiement simple. On replie sur SERVER_URL au lieu de planter,
+    # et on désactive les credentials (jamais de wildcard + credentials).
+    logging.getLogger(__name__).warning(
+        "CORS_ORIGINS=* en production : repli sur SERVER_URL (%s). "
+        "Définissez CORS_ORIGINS explicitement pour autoriser d'autres domaines.",
+        settings.SERVER_URL,
     )
+    cors_origins = [settings.SERVER_URL.rstrip("/")] if settings.SERVER_URL else []
+    cors_allow_credentials = False
 
 app.add_middleware(
     CORSMiddleware,
