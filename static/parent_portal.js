@@ -5,6 +5,17 @@
 const _pp = { children: [], selectedChild: null };
 const _PP_COLORS = ['#0E5C3F','#2F8F5B','#F2B705','#C94A35','#6B4E9B','#1565C0'];
 
+/* -- Échappement HTML (anti-XSS) : toute donnée venant du back
+   insérée via concaténation/innerHTML doit passer par esc() -- */
+function _ppEsc(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#39;');
+}
+
 function _ppGradeColor(pct) {
   if (pct >= 80) return 'var(--yiriba-vert)';
   if (pct >= 50) return 'var(--yiriba-vert-feuille)';
@@ -30,7 +41,7 @@ function _ppChildSelector() {
   var sel = _pp.selectedChild;
   if (ch.length <= 1) return '';
   var opts = ch.map(function(c) {
-    return '<option value="' + c.id + '"' + (c.id === sel?.id ? ' selected' : '') + '>' + c.first_name + ' ' + c.last_name + ' \u2014 ' + (c.class_name || 'Non inscrit') + '</option>';
+    return '<option value="' + c.id + '"' + (c.id === sel?.id ? ' selected' : '') + '>' + _ppEsc(c.first_name) + ' ' + _ppEsc(c.last_name) + ' \u2014 ' + (c.class_name || 'Non inscrit') + '</option>';
   }).join('');
   return '<div style="margin-bottom:16px;display:flex;align-items:center;gap:10px;">' +
     '<label style="font-size:13px;font-weight:600;color:var(--texte-secondaire);">Enfant :</label>' +
@@ -134,7 +145,7 @@ async function loadParentDashboard() {
         gradesHtml += '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 8px;border-radius:8px;">' +
           '<div><div style="font-size:13px;font-weight:600;">' + (g.evaluation_name || '\u2014') + '</div>' +
           '<div style="font-size:11px;color:var(--texte-secondaire);">' + _ppPeriodLabel(g.period) + '</div></div>' +
-          '<span style="font-family:\'Sora\',sans-serif;font-size:16px;font-weight:700;color:' + _ppGradeColor(pct) + '">' + g.grade + '/' + (g.max_grade || 20) + '</span></div>';
+          '<span style="font-family:\'Sora\',sans-serif;font-size:16px;font-weight:700;color:' + _ppGradeColor(pct) + '">' + _ppEsc(g.grade) + '/' + (g.max_grade || 20) + '</span></div>';
       });
     } else {
       gradesHtml = '<div class="yiriba-empty" style="padding:20px;"><div class="empty-tree"><i class="fas fa-pen-fancy"></i></div><h4>Aucune note</h4></div>';
@@ -160,7 +171,7 @@ async function loadParentDashboard() {
       _ppChildSelector() +
       // Stats cards
       '<div class="indicator-row" style="margin-top:16px;">' +
-        '<div class="indicator-card hero"><div class="indicator-icon" style="background:rgba(255,255,255,0.18)"><i class="fas fa-user-graduate"></i></div><div class="indicator-info"><h4>' + child.first_name + ' ' + child.last_name + '</h4><div class="indicator-val">' + (child.class_name || '\u2014') + '</div><div class="indicator-sub">Classe</div></div></div>' +
+        '<div class="indicator-card hero"><div class="indicator-icon" style="background:rgba(255,255,255,0.18)"><i class="fas fa-user-graduate"></i></div><div class="indicator-info"><h4>' + _ppEsc(child.first_name) + ' ' + _ppEsc(child.last_name) + '</h4><div class="indicator-val">' + (child.class_name || '\u2014') + '</div><div class="indicator-sub">Classe</div></div></div>' +
         '<div class="indicator-card"><div class="indicator-icon" style="color:var(--yiriba-jaune)"><i class="fas fa-chart-line"></i></div><div class="indicator-info"><h4>Moyenne</h4><div class="indicator-val" style="color:' + _ppGradeColor(avgPct) + '">' + avg + ' / 20</div><div class="indicator-sub">' + grades.length + ' note(s)</div></div></div>' +
         '<div class="indicator-card"><div class="indicator-icon" style="color:var(--yiriba-vert-feuille)"><i class="fas fa-clipboard-check"></i></div><div class="indicator-info"><h4>Pr\u00e9sence</h4><div class="indicator-val">' + attRate + (attRate !== '\u2014' ? '%' : '\u2014') + '</div><div class="indicator-sub">' + presentCount + ' pr\u00e9sent \u00b7 ' + lateCount + ' retard \u00b7 ' + absentCount + ' absent</div></div></div>' +
         '<div class="indicator-card"><div class="indicator-icon" style="color:' + payColor + '"><i class="fas fa-money-bill-wave"></i></div><div class="indicator-info"><h4>Scolarit\u00e9</h4><div class="indicator-val">' + totalPaid.toLocaleString('fr-FR') + ' FCFA</div><div class="indicator-sub">' + (balance > 0 ? 'Reste : ' + balance.toLocaleString('fr-FR') + ' FCFA' : '\u00c0 jour') + '</div></div></div>' +
@@ -213,7 +224,7 @@ async function loadParentChildren() {
         var color = _PP_COLORS[i % _PP_COLORS.length];
         cardsHtml += '<div class="card section-card" style="padding:0;overflow:hidden;">' +
           '<div style="background:linear-gradient(135deg,' + color + ',' + color + 'dd);padding:20px;color:white;">' +
-            '<div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div style="font-family:\'Sora\',sans-serif;font-size:20px;font-weight:700;">' + ch.first_name + ' ' + ch.last_name + '</div>' +
+            '<div style="display:flex;justify-content:space-between;align-items:flex-start;"><div><div style="font-family:\'Sora\',sans-serif;font-size:20px;font-weight:700;">' + _ppEsc(ch.first_name) + ' ' + _ppEsc(ch.last_name) + '</div>' +
             '<div style="font-size:12px;opacity:0.8;margin-top:4px;">' + (ch.class_name || 'Non inscrit') + ' \u00b7 #' + (ch.matricule || '\u2014') + '</div></div>' +
             '<div style="width:44px;height:44px;border-radius:50%;background:rgba(255,255,255,0.2);display:grid;place-items:center;font-size:18px;font-weight:700;">' + (ch.first_name||'?')[0] + (ch.last_name||'?')[0] + '</div></div></div>' +
           '<div style="padding:16px 20px;"><button class="btn-add" style="width:100%;justify-content:center;" onclick="ppSwitchChild(' + ch.id + ');loadPage(\'p-dashboard\');"><i class="fas fa-eye"></i> Voir le suivi</button></div></div>';
@@ -268,7 +279,7 @@ async function loadParentGrades(periodId) {
     Object.values(bySubject).forEach(function(s) {
       var pct = s.avg !== '\u2014' ? Math.round(s.avg / 20 * 100) : 0;
       subjectCardsHtml += '<div class="card section-card" style="padding:16px;border-left:4px solid ' + _ppGradeColor(pct) + ';">' +
-        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-weight:700;font-size:14px;">' + s.name + '</span>' +
+        '<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;"><span style="font-weight:700;font-size:14px;">' + _ppEsc(s.name) + '</span>' +
         '<span style="font-size:12px;color:var(--texte-secondaire);">' + s.grades.length + ' note(s) \u00b7 Coeff. ' + s.coef + '</span></div>' +
         '<div style="font-family:\'Sora\',sans-serif;font-size:24px;font-weight:700;color:' + _ppGradeColor(pct) + ';">' + s.avg + ' <span style="font-size:14px;color:var(--texte-secondaire);">/ 20</span></div></div>';
     });
@@ -279,7 +290,7 @@ async function loadParentGrades(periodId) {
       grades.forEach(function(g) {
         var pct = g.max_grade > 0 ? (g.grade / g.max_grade * 100) : 0;
         rows += '<tr><td style="font-weight:600;">' + (g.evaluation_name || '\u2014') + '</td>' +
-          '<td><span style="font-family:\'Sora\',sans-serif;font-weight:700;color:' + _ppGradeColor(pct) + '">' + g.grade + '</span></td>' +
+          '<td><span style="font-family:\'Sora\',sans-serif;font-weight:700;color:' + _ppGradeColor(pct) + '">' + _ppEsc(g.grade) + '</span></td>' +
           '<td>/' + (g.max_grade || 20) + '</td><td>' + (g.coefficient || 1) + '</td><td>' + _ppPeriodLabel(g.period) + '</td></tr>';
       });
       tableHtml = '<div class="card section-card" style="margin-top:16px;padding:0;"><div class="yiriba-table-wrap" style="border:0;border-radius:0;">' +
@@ -287,7 +298,7 @@ async function loadParentGrades(periodId) {
         '<tbody>' + rows + '</tbody></table></div></div>';
     }
 
-    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;">R\u00e9sultats de ' + child.first_name + '</h1><p style="color:var(--texte-secondaire);">Situation scolaire compl\u00e8te.</p></div>' +
+    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;">R\u00e9sultats de ' + _ppEsc(child.first_name) + '</h1><p style="color:var(--texte-secondaire);">Situation scolaire compl\u00e8te.</p></div>' +
       _ppChildSelector() +
       '<div style="display:flex;align-items:center;gap:10px;margin:12px 0;padding:10px 16px;background:white;border:1px solid var(--border);border-radius:10px">' +
         '<i class="fas fa-calendar-days" style="color:var(--yiriba-vert)"></i>' +
@@ -324,7 +335,7 @@ async function loadParentAttendance() {
     att.forEach(function(a) {
       var justifyBtn = '';
       if (a.status === 'absent' && !a.is_justified) {
-        justifyBtn = '<button class="btn-secondary" style="font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;" onclick="ppJustifyAbsence(\'' + a.date + '\', \'' + child.id + '\')"><i class="fas fa-pen"></i> Justifier</button>';
+        justifyBtn = '<button class="btn-secondary" style="font-size:11px;padding:4px 10px;border-radius:6px;cursor:pointer;" onclick="ppJustifyAbsence(\'' + _ppEsc(a.date) + '\', \'' + child.id + '\')"><i class="fas fa-pen"></i> Justifier</button>';
       }
       var statusHtml = _ppAttBadge(a.status);
       if (a.is_justified) statusHtml += ' <span class="badge badge-active" style="font-size:10px;">Justifi\u00e9</span>';
@@ -349,7 +360,7 @@ async function loadParentAttendance() {
       tableHtml = '<div class="card section-card" style="margin-top:16px;"><div class="yiriba-empty"><div class="empty-tree"><i class="fas fa-clipboard-check"></i></div><h4>Aucune pr\u00e9sence</h4></div></div>';
     }
 
-    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;">Pr\u00e9sences de ' + child.first_name + '</h1><p style="color:var(--texte-secondaire);">Suivi des pr\u00e9sences et absences.</p></div>' +
+    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;">Pr\u00e9sences de ' + _ppEsc(child.first_name) + '</h1><p style="color:var(--texte-secondaire);">Suivi des pr\u00e9sences et absences.</p></div>' +
       _ppChildSelector() +
       '<div class="indicator-row" style="margin-top:8px;">' +
         '<div class="indicator-card hero"><div class="indicator-icon" style="background:rgba(255,255,255,0.18)"><i class="fas fa-clipboard-check"></i></div><div class="indicator-info"><h4>Pr\u00e9sence</h4><div class="indicator-val">' + attRate + (attRate !== '\u2014' ? '%' : '\u2014') + '</div><div class="indicator-sub">' + presentCount + ' pr\u00e9sent \u00b7 ' + lateCount + ' retard \u00b7 ' + absentCount + ' absent</div></div></div></div>' +
@@ -435,7 +446,7 @@ async function loadParentBulletins() {
     } else {
       cardsHtml = '<div class="card section-card" style="margin-top:16px;"><div class="yiriba-empty"><div class="empty-tree"><i class="fas fa-file-lines"></i></div><h4>Aucun bulletin</h4><p>Les bulletins seront publi\u00e9s par l\u2019administration.</p></div></div>';
     }
-    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;">Bulletins de ' + child.first_name + '</h1><p style="color:var(--texte-secondaire);">Consultez les bulletins.</p></div>' +
+    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;">Bulletins de ' + _ppEsc(child.first_name) + '</h1><p style="color:var(--texte-secondaire);">Consultez les bulletins.</p></div>' +
       _ppChildSelector() +
       '<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(350px,1fr));gap:16px;margin-top:16px;">' + cardsHtml + '</div>';
   } catch(err) {
@@ -491,7 +502,7 @@ async function loadParentPayments() {
     var overdueHtml = '';
     if ((data.overdue || []).length > 0) {
       overdueHtml = '<div class="card section-card" style="margin-top:12px;padding:14px 20px;border-left:4px solid var(--yiriba-rouge);"><div style="font-weight:700;font-size:13px;color:var(--yiriba-rouge);margin-bottom:6px;"><i class="fas fa-triangle-exclamation"></i> ' + data.overdue.length + ' \u00e9ch\u00e9ance(s) d\u00e9pass\u00e9e(s)</div>' +
-        data.overdue.map(function(o) { return '<div style="font-size:12px;">\u2022 ' + o.name + ' — reste ' + (o.balance || 0).toLocaleString('fr-FR') + ' FCFA (\u00e9ch\u00e9ance ' + (o.due_date || '?') + ')</div>'; }).join('') + '</div>';
+        data.overdue.map(function(o) { return '<div style="font-size:12px;">\u2022 ' + _ppEsc(o.name) + ' — reste ' + (o.balance || 0).toLocaleString('fr-FR') + ' FCFA (\u00e9ch\u00e9ance ' + (o.due_date || '?') + ')</div>'; }).join('') + '</div>';
     }
 
     var tableHtml = '';
@@ -501,7 +512,7 @@ async function loadParentPayments() {
         '<tbody>' + rowsHtml + '</tbody></table></div></div>';
     }
 
-    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;">Scolarit\u00e9 de ' + child.first_name + '</h1><p style="color:var(--texte-secondaire);">Situation financi\u00e8re.</p></div>' +
+    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;">Scolarit\u00e9 de ' + _ppEsc(child.first_name) + '</h1><p style="color:var(--texte-secondaire);">Situation financi\u00e8re.</p></div>' +
       _ppChildSelector() +
       '<div class="indicator-row" style="margin-top:8px;">' +
         '<div class="indicator-card hero"><div class="indicator-icon" style="background:rgba(255,255,255,0.18)"><i class="fas fa-money-bill-wave"></i></div><div class="indicator-info"><h4>Total \u00e0 payer</h4><div class="indicator-val">' + totalOwed.toLocaleString('fr-FR') + ' FCFA</div></div></div>' +
@@ -540,7 +551,7 @@ async function loadParentTimetable() {
         var list = dayMap[todayName] || [];
         var rows = list.length > 0 ? list.map(function(e) {
           return '<div style="display:flex;align-items:center;gap:14px;padding:12px 16px;border-bottom:1px solid var(--border);">' +
-            '<div style="width:90px;flex-shrink:0;font-weight:700;font-family:\'Sora\',sans-serif;">' + e.start_time + '</div>' +
+            '<div style="width:90px;flex-shrink:0;font-weight:700;font-family:\'Sora\',sans-serif;">' + _ppEsc(e.start_time) + '</div>' +
             '<div style="flex:1;"><div style="font-weight:600;font-size:14px;">' + (e.subject || '\u2014') + '</div>' +
             '<div style="font-size:12px;color:var(--texte-secondaire);">' + (e.teacher || '') + (e.room ? ' \u00b7 Salle ' + e.room : '') + '</div></div></div>';
         }).join('') : '<div class="yiriba-empty" style="padding:30px;"><div class="empty-tree"><i class="fas fa-calendar-day"></i></div><h4>Aucun cours le ' + todayName + '</h4></div>';
@@ -561,9 +572,9 @@ async function loadParentTimetable() {
             return '<td>' + evs.map(function(e) {
               return '<div style="background:var(--yiriba-vert);color:white;border-radius:8px;padding:6px 8px;margin:2px 0;font-size:11px;line-height:1.3;">' +
                 '<div style="font-weight:700;">' + (e.subject || '\u2014') + '</div>' +
-                '<div style="opacity:0.85;font-size:10px;">' + e.start_time + '\u2013' + e.end_time + '</div>' +
-                (e.teacher && e.teacher !== 'Non assign\u00e9' ? '<div style="opacity:0.85;font-size:10px;">' + e.teacher + '</div>' : '') +
-                (e.room ? '<div style="opacity:0.85;font-size:10px;">Salle ' + e.room + '</div>' : '') +
+                '<div style="opacity:0.85;font-size:10px;">' + _ppEsc(e.start_time) + '\u2013' + _ppEsc(e.end_time) + '</div>' +
+                (e.teacher && e.teacher !== 'Non assign\u00e9' ? '<div style="opacity:0.85;font-size:10px;">' + _ppEsc(e.teacher) + '</div>' : '') +
+                (e.room ? '<div style="opacity:0.85;font-size:10px;">Salle ' + _ppEsc(e.room) + '</div>' : '') +
               '</div>';
             }).join('') + '</td>';
           });
@@ -578,7 +589,7 @@ async function loadParentTimetable() {
       body = '<div class="card section-card" style="margin-top:16px;"><div class="yiriba-empty"><div class="empty-tree"><i class="fas fa-calendar-days"></i></div><h4>Aucun cours planifi\u00e9</h4><p>L\u2019\u00e9tablissement n\u2019a pas encore publi\u00e9 d\u2019emploi du temps pour cette classe.</p></div></div>';
     }
 
-    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;">Emploi du temps de ' + child.first_name + '</h1><p style="color:var(--texte-secondaire);">Planning de la classe ' + (child.class_name || '') + '.</p></div>' +
+    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;">Emploi du temps de ' + _ppEsc(child.first_name) + '</h1><p style="color:var(--texte-secondaire);">Planning de la classe ' + (child.class_name || '') + '.</p></div>' +
       _ppChildSelector() + '<div style="margin-top:16px;">' + body + '</div>';
   } catch(err) {
     c.innerHTML = '<div class="card section-card"><div class="yiriba-empty"><div class="empty-tree"><i class="fas fa-exclamation-triangle"></i></div><h4>Erreur</h4></div></div>';
@@ -678,7 +689,7 @@ async function loadParentScolarite() {
       row('Reste \u00e0 payer', balance ? balance.toLocaleString('fr-FR') + ' FCFA' : '0 FCFA') +
       row('Statut', finStatus));
 
-    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;">Scolarit\u00e9 de ' + child.first_name + '</h1><p style="color:var(--texte-secondaire);">Situation compl\u00e8te de l\u2019enfant.</p></div>' +
+    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;">Scolarit\u00e9 de ' + _ppEsc(child.first_name) + '</h1><p style="color:var(--texte-secondaire);">Situation compl\u00e8te de l\u2019enfant.</p></div>' +
       _ppChildSelector() +
       '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:16px;margin-top:16px;">' + identite + scolarite + resultats + presence + finances + '</div>';
   } catch(err) {
@@ -703,7 +714,7 @@ async function loadParentEvaluations() {
     var periods = pData.periods || [];
 
     var periodOpts = '<option value="">Toutes les p\u00e9riodes</option>';
-    periods.forEach(function(p) { periodOpts += '<option value="' + p.id + '">' + p.name + '</option>'; });
+    periods.forEach(function(p) { periodOpts += '<option value="' + p.id + '">' + _ppEsc(p.name) + '</option>'; });
 
     var typeLabel = function(t) {
       var m = { devoir1: 'Devoir 1', devoir2: 'Devoir 2', composition: 'Composition', test: 'Test', interrogation: 'Interrogation' };
@@ -736,7 +747,7 @@ async function loadParentEvaluations() {
       return '<div style="margin-top:16px;"><div style="font-weight:700;font-size:14px;margin-bottom:10px;"><i class="fas ' + icon + '" style="color:var(--yiriba-vert);margin-right:8px;"></i>' + title + ' <span style="font-size:12px;color:var(--texte-secondaire);font-weight:400;">(' + list.length + ')</span></div><div style="display:flex;flex-direction:column;gap:8px;">' + inner + '</div></div>';
     };
 
-    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;">Devoirs & \u00c9valuations de ' + child.first_name + '</h1><p style="color:var(--texte-secondaire);">Suivi des devoirs, compositions et r\u00e9sultats.</p></div>' +
+    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;">Devoirs & \u00c9valuations de ' + _ppEsc(child.first_name) + '</h1><p style="color:var(--texte-secondaire);">Suivi des devoirs, compositions et r\u00e9sultats.</p></div>' +
       _ppChildSelector() +
       '<div style="display:flex;align-items:center;gap:10px;margin:12px 0;padding:10px 16px;background:white;border:1px solid var(--border);border-radius:10px">' +
         '<i class="fas fa-calendar-days" style="color:var(--yiriba-vert)"></i>' +
@@ -772,7 +783,7 @@ async function loadParentEvaluationsByPeriod(periodId) {
       return '<tr><td style="font-weight:600;">' + (e.name || typeLabel(e.type)) + '</td><td>' + (e.subject || '\u2014') + '</td><td>' + typeLabel(e.type) + '</td><td>' + (e.date || '\u2014') + '</td><td>' + (e.grade !== null && e.grade !== undefined ? e.grade + '/' + (e.max_score || 20) : '\u2014') + '</td><td>' + statusBadge(e) + '</td></tr>';
     }).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--texte-secondaire);padding:24px;">Aucune \u00e9valuation pour cette p\u00e9riode.</td></tr>';
     var child = _pp.selectedChild;
-    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;">Devoirs & \u00c9valuations de ' + child.first_name + '</h1><p style="color:var(--texte-secondaire);">Suivi des devoirs et r\u00e9sultats.</p></div>' +
+    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;">Devoirs & \u00c9valuations de ' + _ppEsc(child.first_name) + '</h1><p style="color:var(--texte-secondaire);">Suivi des devoirs et r\u00e9sultats.</p></div>' +
       _ppChildSelector() +
       '<div class="card section-card" style="margin-top:16px;padding:0;"><div class="yiriba-table-wrap" style="border:0;border-radius:0;">' +
       '<table class="yiriba-table"><thead><tr><th>\u00c9valuation</th><th>Mati\u00e8re</th><th>Type</th><th>Date</th><th>Note</th><th>Statut</th></tr></thead>' +
@@ -815,14 +826,14 @@ async function loadParentDocuments() {
         var link = d.href ? '<a href="' + d.href + '" target="_blank" class="btn-secondary" style="font-size:12px;padding:7px 14px;border-radius:7px;text-decoration:none;white-space:nowrap;"><i class="fas fa-download"></i> ' + d.action + '</a>' : '';
         return '<div class="card section-card" style="padding:14px 18px;display:flex;align-items:center;gap:14px;">' +
           '<div style="width:42px;height:42px;border-radius:10px;background:' + d.color + '1a;display:grid;place-items:center;color:' + d.color + ';font-size:16px;flex-shrink:0;"><i class="fas ' + d.icon + '"></i></div>' +
-          '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:14px;">' + d.name + '</div>' +
+          '<div style="flex:1;min-width:0;"><div style="font-weight:600;font-size:14px;">' + _ppEsc(d.name) + '</div>' +
           '<div style="font-size:12px;color:var(--texte-secondaire);margin-top:2px;">' + d.type + (d.date ? ' \u00b7 ' + (d.date || '').slice(0, 10) : '') + '</div></div>' + link + '</div>';
       }).join('');
     } else {
       html = '<div class="yiriba-empty" style="padding:40px;"><div class="empty-tree"><i class="fas fa-folder-open"></i></div><h4>Aucun document</h4><p>Les bulletins publi\u00e9s et re\u00e7us de paiement appara\u00eetront ici.</p></div>';
     }
 
-    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;"><i class="fas fa-folder-open" style="color:var(--yiriba-vert);margin-right:8px;"></i>Documents</h1><p style="color:var(--texte-secondaire);">Bulletins et re\u00e7us de ' + child.first_name + '.</p></div>' +
+    c.innerHTML = '<div class="welcome"><h1 style="font-family:\'Sora\',sans-serif;"><i class="fas fa-folder-open" style="color:var(--yiriba-vert);margin-right:8px;"></i>Documents</h1><p style="color:var(--texte-secondaire);">Bulletins et re\u00e7us de ' + _ppEsc(child.first_name) + '.</p></div>' +
       _ppChildSelector() + '<div style="display:flex;flex-direction:column;gap:8px;margin-top:16px;">' + html + '</div>';
   } catch(err) {
     c.innerHTML = '<div class="card section-card"><div class="yiriba-empty"><div class="empty-tree"><i class="fas fa-exclamation-triangle"></i></div><h4>Erreur</h4></div></div>';
@@ -914,7 +925,7 @@ async function loadParentRappels() {
         html += '<div class="card section-card" style="padding:16px 20px;margin-bottom:8px;border-left:4px solid ' + r.color + ';">' +
           '<div style="display:flex;align-items:start;gap:12px;">' +
             '<div style="width:36px;height:36px;border-radius:8px;background:' + r.color + '15;display:grid;place-items:center;color:' + r.color + ';font-size:16px;flex-shrink:0;"><i class="fas ' + r.icon + '"></i></div>' +
-            '<div style="flex:1;"><div style="font-weight:600;font-size:14px;">' + r.title + '</div>' +
+            '<div style="flex:1;"><div style="font-weight:600;font-size:14px;">' + _ppEsc(r.title) + '</div>' +
             '<div style="font-size:13px;color:var(--texte-secondaire);margin-top:2px;">' + r.body + '</div></div>' +
             '<span style="font-size:10px;font-weight:600;padding:2px 8px;border-radius:10px;background:' + prioColor + ';color:' + prioTextColor + ';white-space:nowrap;">' + prioLabel + '</span></div></div>';
       });

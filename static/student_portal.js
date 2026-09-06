@@ -87,7 +87,7 @@ async function loadStudentDashboard() {
 '<div style="width:36px;height:36px;border-radius:10px;background:linear-gradient(135deg,rgba(14,92,63,0.08),rgba(47,143,91,0.06));display:grid;place-items:center;color:var(--yiriba-vert);font-size:13px;font-weight:700;flex-shrink:0;">' + escapeHtml(g.evaluation_name || '?').substring(0,2).toUpperCase() + '</div>' +
 '<div><div style="font-size:13px;font-weight:600;">' + escapeHtml(g.evaluation_name || '—') + '</div>' +
             '<div style="font-size:11px;color:var(--texte-secondaire);">Coeff. ' + (g.coefficient || 1) + ' · ' + _periodLabel(g.period) + '</div></div></div>' +
-          '<div style="text-align:right;"><span style="font-family:\'Sora\',sans-serif;font-size:16px;font-weight:700;color:' + _gradeColor(pct) + '">' + g.grade + '</span>' +
+          '<div style="text-align:right;"><span style="font-family:\'Sora\',sans-serif;font-size:16px;font-weight:700;color:' + _gradeColor(pct) + '">' + escapeHtml(g.grade) + '</span>' +
           '<span style="font-size:12px;color:var(--texte-secondaire);">/' + (g.max_grade || 20) + '</span></div></div>';
       });
     } else {
@@ -180,7 +180,7 @@ async function loadStudentGrades(periodId) {
       grades.forEach(function(g) {
         var pct = g.max_grade > 0 ? (g.grade / g.max_grade * 100) : 0;
         rows += '<tr><td style="font-weight:600;">' + escapeHtml(g.evaluation_name || '—') + '</td>' +
-          '<td><span style="font-family:\'Sora\',sans-serif;font-size:16px;font-weight:700;color:' + _gradeColor(pct) + '">' + g.grade + '</span></td>' +
+          '<td><span style="font-family:\'Sora\',sans-serif;font-size:16px;font-weight:700;color:' + _gradeColor(pct) + '">' + escapeHtml(g.grade) + '</span></td>' +
           '<td>/' + (g.max_grade || 20) + '</td><td>' + (g.coefficient || 1) + '</td><td>' + _periodLabel(g.period) + '</td>' +
           '<td style="font-style:italic;color:var(--texte-secondaire);">' + escapeHtml(g.comment || '—') + '</td></tr>';
       });
@@ -381,7 +381,7 @@ async function loadStudentHomework() {
           var pct = g.max_grade > 0 ? (g.grade / g.max_grade * 100) : 0;
           cardsHtml += '<div style="display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-top:1px solid var(--border);font-size:13px;">' +
             '<span>' + escapeHtml(g.evaluation_name || '—') + '</span>' +
-            '<span style="font-weight:700;color:' + _gradeColor(pct) + ';">' + g.grade + '/' + (g.max_grade || 20) + '</span></div>';
+            '<span style="font-weight:700;color:' + _gradeColor(pct) + ';">' + escapeHtml(g.grade) + '/' + (g.max_grade || 20) + '</span></div>';
         });
         cardsHtml += '</div>';
       });

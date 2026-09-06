@@ -15,27 +15,40 @@ from starlette.responses import JSONResponse
 
 logger = logging.getLogger("yiriba")
 
-_RATIO_RE = re.compile(r"^(\d+)\s*/\s*(\d+)\s*(s|m|h|d)?$")
+# 'N/unité' (5/minute, 100/hour, 10/s) ou 'N/M' (5/60 = 5 requêtes / 60 s)
+_RATIO_RE = re.compile(r"^(\d+)\s*/\s*(\d+|[a-z]+)$")
+
+_UNIT_SECONDS = {
+    "s": 1, "sec": 1, "second": 1, "seconds": 1,
+    "m": 60, "min": 60, "mins": 60, "minute": 60, "minutes": 60,
+    "h": 3600, "hour": 3600, "hours": 3600,
+    "d": 86400, "day": 86400, "days": 86400,
+}
 
 
 def parse_rate(spec: str) -> tuple[int, float]:
     """Parse '10/minute' -> (max_requests, window_seconds).
 
-    '0' (ou tout ratio débutant par 0) désactive le limiteur.
+    Accepte '5/m', '5/minute', '100/hour' (N par fenêtre d'unité) et
+    '5/60' (N requêtes par M secondes). '0' désactive le limiteur.
     """
     cleaned = spec.strip().lower()
+    if not cleaned:
+        return 100, 60.0
+    if cleaned.startswith("0") and "/" not in cleaned:
+        return 0, 60.0
     m = _RATIO_RE.match(cleaned)
     if not m:
-        if cleaned in ("0", "0/", "0/min", "0/s"):
-            return 0, 60.0
+        if cleaned.isdigit():
+            return int(cleaned), 60.0
         return 100, 60.0
     count = int(m.group(1))
     if count <= 0:
         return 0, 60.0
-    period = int(m.group(2))
-    unit = m.group(3) or "s"
-    seconds = {"s": 1, "m": 60, "h": 3600, "d": 86400}[unit]
-    return count, seconds * period
+    denom = m.group(2)
+    if denom.isdigit():
+        return count, float(int(denom))
+    return count, float(_UNIT_SECONDS.get(denom, 60))
 
 
 class RateLimitMiddleware(BaseHTTPMiddleware):

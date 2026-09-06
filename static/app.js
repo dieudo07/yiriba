@@ -1271,7 +1271,7 @@ async function loadStudents() {
         </div>
         <select class="filter-select" id="filter-class">
           <option value="">Toutes les classes</option>
-          ${classes.map(cl => `<option value="${cl.id}" ${studentsFilter.class_id == cl.id ? 'selected' : ''}>${cl.name}</option>`).join('')}
+          ${classes.map(cl => `<option value="${cl.id}" ${studentsFilter.class_id == cl.id ? 'selected' : ''}>${escapeHtml(cl.name)}</option>`).join('')}
         </select>
         <select class="filter-select" id="filter-status">
           <option value="all" ${studentsFilter.status === 'all' || !studentsFilter.status ? 'selected' : ''}>Tous les statuts</option>
@@ -1455,7 +1455,7 @@ async function showAddStudentModal() {
           <label>Classe</label>
           <select id="s-class">
             <option value="">— Sélectionner une classe —</option>
-            ${classes.map(cl => `<option value="${cl.id}">${cl.name} (${cl.academic_year || ''}) — ${cl.capacity || 50} places</option>`).join('')}
+            ${classes.map(cl => `<option value="${cl.id}">${escapeHtml(cl.name)} (${cl.academic_year || ''}) — ${cl.capacity || 50} places</option>`).join('')}
           </select>
         </div>
       </div>
@@ -1959,7 +1959,7 @@ async function showTransferModal(studentId) {
   showModal('Transférer l\'élève', `
     <div class="modal-form">
       <div class="form-group"><label>Nouvelle classe</label><select id="tr-class">
-        ${classes.map(cl => `<option value="${cl.id}">${cl.name}</option>`).join('')}
+        ${classes.map(cl => `<option value="${cl.id}">${escapeHtml(cl.name)}</option>`).join('')}
       </select></div>
       <div class="form-group"><label>Raison (optionnel)</label><input id="tr-reason" placeholder="Ex: Familiale"></div>
       <div class="modal-footer">
@@ -2275,10 +2275,10 @@ async function loadClasses() {
             <div class="stat-icon"><i class="fas fa-chalkboard"></i></div>
             <div class="table-actions">
               <button title="Modifier" onclick="editClass(${cl.id})"><i class="fas fa-pen"></i></button>
-              <button title="Supprimer" class="danger" onclick="deleteClass(${cl.id},'${cl.name}')"><i class="fas fa-trash"></i></button>
+              <button title="Supprimer" class="danger" onclick="deleteClass(${cl.id},'${escapeHtml(cl.name)}')"><i class="fas fa-trash"></i></button>
             </div>
           </div>
-          <h3 style="font-family:'Sora',sans-serif;font-size:17px;font-weight:650;margin-bottom:4px">${cl.name}</h3>
+          <h3 style="font-family:'Sora',sans-serif;font-size:17px;font-weight:650;margin-bottom:4px">${escapeHtml(cl.name)}</h3>
           <div style="font-size:13px;color:var(--texte-secondaire);margin-bottom:12px">${cl.level || 'Niveau non défini'} · Année ${cl.academic_year}</div>
           <div style="display:flex;gap:16px;font-size:13px">
             <div><span style="font-weight:600">${cl.capacity}</span> places</div>
@@ -2359,7 +2359,7 @@ async function editClass(id) {
     if (!cl) { showToast('Classe introuvable', 'error'); return; }
     showModal('Modifier — ' + cl.name, `
       <div class="modal-form">
-        <div class="form-group"><label>Nom</label><input id="cl-name" value="${cl.name}"></div>
+        <div class="form-group"><label>Nom</label><input id="cl-name" value="${escapeHtml(cl.name)}"></div>
         <div class="form-row">
           <div class="form-group"><label>Niveau</label><input id="cl-level" value="${cl.level || ''}"></div>
           <div class="form-group"><label>Capacité</label><input id="cl-capacity" type="number" value="${cl.capacity}" min="1" max="200"></div>
@@ -2809,7 +2809,7 @@ async function loadGrades() {
     <div class="page-toolbar" style="flex-wrap:wrap;gap:8px">
       <div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap">
         <label style="font-size:13px;color:var(--texte-secondaire)">Filtrer :</label>
-        <select id="grade-filter-class" onchange="filterGrades()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:white"><option value="">Toutes les classes</option>${classes.map(cl => `<option value="${cl.id}">${cl.name}</option>`).join('')}</select>
+        <select id="grade-filter-class" onchange="filterGrades()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:white"><option value="">Toutes les classes</option>${classes.map(cl => `<option value="${cl.id}">${escapeHtml(cl.name)}</option>`).join('')}</select>
         <select id="grade-filter-period" onchange="filterGrades()" style="padding:6px 10px;border:1px solid var(--border);border-radius:6px;font-size:13px;background:white"><option value="">Toutes périodes</option>${periodOptions}</select>
         <span style="font-size:13px;color:var(--texte-secondaire)" id="grade-filter-count">${evaluations.length} évaluation(s)</span>
       </div>
@@ -3408,7 +3408,7 @@ async function showAttendanceModal() {
   showModal('Faire l\'appel', `
     <div class="modal-form">
       <div class="form-row">
-        <div class="form-group"><label>Classe</label><select id="att-class" onchange="loadRollCallStudents()"><option value="">Choisir une classe</option>${classes.map(c => `<option value="${c.id}">${c.name}</option>`).join('')}</select></div>
+        <div class="form-group"><label>Classe</label><select id="att-class" onchange="loadRollCallStudents()"><option value="">Choisir une classe</option>${classes.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('')}</select></div>
         <div class="form-group"><label>Date</label><input id="att-date" type="date" value="${today}"></div>
       </div>
       <div class="form-row">
@@ -3605,7 +3605,7 @@ async function b2LoadPeriods() {
     const res = await api(`/api/report-cards/class/${_bState.classId}/periods?academic_year=${encodeURIComponent(_bState.year || '')}`);
     if (res?.ok) _bState.periods = (await res.json()).periods || [];
   } catch {}
-  sel.innerHTML = '<option value="">Toutes</option>' + _bState.periods.map(p => `<option value="${p.code}" ${_bState.period === p.code ? 'selected' : ''}>${p.label}</option>`).join('');
+  sel.innerHTML = '<option value="">Toutes</option>' + _bState.periods.map(p => `<option value="${p.code}" ${_bState.period === p.code ? 'selected' : ''}>${escapeHtml(p.label)}</option>`).join('');
 }
 
 async function b2Load() {
@@ -3766,7 +3766,7 @@ async function bgOnClass() {
   if (!res?.ok) return;
   const j = await res.json();
   sel.disabled = false;
-  sel.innerHTML = '<option value="">Choisir…</option>' + j.periods.map(p => `<option value="${p.code}">${p.label}</option>`).join('');
+  sel.innerHTML = '<option value="">Choisir…</option>' + j.periods.map(p => `<option value="${p.code}">${escapeHtml(p.label)}</option>`).join('');
   zone.innerHTML = `<i class="fas fa-circle-info"></i> Cette classe est configurée en <b>${escapeHtml(j.class.period_type)}</b>.`;
 }
 
@@ -4241,7 +4241,7 @@ async function loadFeeStructure() {
       <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
         <select class="filter-select" id="fs-class-filter">
           <option value="">Toutes les classes</option>
-          ${classes.map(cl => `<option value="${cl.id}">${cl.name}</option>`).join('')}
+          ${classes.map(cl => `<option value="${cl.id}">${escapeHtml(cl.name)}</option>`).join('')}
         </select>
       </div>
       <div style="display:flex;gap:8px">
@@ -4267,7 +4267,7 @@ async function loadFeeStructure() {
         return `<div class="card section-card" style="overflow:hidden">
           <div style="background:linear-gradient(135deg,var(--yiriba-vert),var(--yiriba-vert-fonce));color:white;padding:16px 20px;display:flex;justify-content:space-between;align-items:center">
             <div>
-              <div style="font-weight:700;font-size:16px">${cl.name}</div>
+              <div style="font-weight:700;font-size:16px">${escapeHtml(cl.name)}</div>
               <div style="font-size:12px;opacity:0.8;margin-top:4px">${cl.level || '—'} · ${cl.academic_year || '—'}</div>
             </div>
             <div style="text-align:right">
@@ -4317,7 +4317,7 @@ async function loadFeeStructure() {
             <!-- ACTIONS -->
             <div style="margin-top:12px;display:flex;gap:8px">
               <button class="btn-secondary" style="flex:1;font-size:12px" onclick="showAddObligationModal(${cl.id})"><i class="fas fa-plus"></i> Ajouter</button>
-              <button class="btn-secondary" style="flex:1;font-size:12px" onclick="showAutoGenerateForClass(${cl.id}, '${cl.name}', ${enrollmentFee}, ${annualTuition})"><i class="fas fa-magic"></i> Auto-générer</button>
+              <button class="btn-secondary" style="flex:1;font-size:12px" onclick="showAutoGenerateForClass(${cl.id}, '${escapeHtml(cl.name)}', ${enrollmentFee}, ${annualTuition})"><i class="fas fa-magic"></i> Auto-générer</button>
             </div>
           </div>
         </div>`;
@@ -4348,7 +4348,7 @@ function showAddObligationModal(classId) {
   const selected = classId ? [String(classId)] : [];
   const classCheckboxes = cls.map(c => {
     const checked = selected.includes(String(c.id)) ? 'checked' : '';
-    return `<label class="ob-class-item" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:white;transition:all .15s" onmouseover="this.style.borderColor='var(--yiriba-vert)'" onmouseout="this.style.borderColor='var(--border)'"><input type="checkbox" value="${c.id}" class="ob-class-check" ${checked} style="width:16px;height:16px;accent-color:var(--yiriba-vert)"><span style="font-size:13px;font-weight:500;color:var(--texte-primaire)">${c.name}</span></label>`;
+    return `<label class="ob-class-item" style="display:flex;align-items:center;gap:8px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;cursor:pointer;background:white;transition:all .15s" onmouseover="this.style.borderColor='var(--yiriba-vert)'" onmouseout="this.style.borderColor='var(--border)'"><input type="checkbox" value="${c.id}" class="ob-class-check" ${checked} style="width:16px;height:16px;accent-color:var(--yiriba-vert)"><span style="font-size:13px;font-weight:500;color:var(--texte-primaire)">${escapeHtml(c.name)}</span></label>`;
   }).join('');
   showModal('Ajouter une obligation', `
     <div class="modal-form">
@@ -4458,7 +4458,7 @@ async function autoGenerateAllObligations() {
       const at = cl.annual_tuition || 0;
       if (ef > 0) {
         await api('/api/payments/obligations', { method: 'POST', body: JSON.stringify({
-          class_id: cl.id, name: `Frais d'inscription - ${cl.name}`, amount: ef, period: 'inscription'
+          class_id: cl.id, name: `Frais d'inscription - ${escapeHtml(cl.name)}`, amount: ef, period: 'inscription'
         })});
         created++;
       }
@@ -4466,7 +4466,7 @@ async function autoGenerateAllObligations() {
         const trimester = Math.round(at / 3);
         for (let t = 1; t <= 3; t++) {
           await api('/api/payments/obligations', { method: 'POST', body: JSON.stringify({
-            class_id: cl.id, name: `Scolarité T${t} - ${cl.name}`, amount: t === 3 ? at - (trimester * 2) : trimester, period: `T${t}`
+            class_id: cl.id, name: `Scolarité T${t} - ${escapeHtml(cl.name)}`, amount: t === 3 ? at - (trimester * 2) : trimester, period: `T${t}`
           })});
           created++;
         }
@@ -4591,7 +4591,7 @@ function promoOnYearChange() {
   api('/api/classes?per_page=200').then(r => r?.ok ? r.json() : null).then(j => {
     const classes = ((j || {}).classes || []).filter(cl => cl.academic_year === year);
     _promoState._classes = classes;
-    classes.forEach(cl => { classSel.insertAdjacentHTML('beforeend', `<option value="${cl.id}">${cl.name} (${cl.academic_year})</option>`); });
+    classes.forEach(cl => { classSel.insertAdjacentHTML('beforeend', `<option value="${cl.id}">${escapeHtml(cl.name)} (${cl.academic_year})</option>`); });
   });
 }
 
@@ -4676,7 +4676,7 @@ function promoRenderStudents() {
       </select></td>
       <td><select id="promo-target-${s.student_id}" ${needsTarget ? '' : 'disabled'} onchange="promoMaybeRefreshSummary()" style="padding:6px;border:1px solid var(--border);border-radius:6px;font-size:13px">
         <option value="">— Choisir —</option>
-        ${(_promoState._destClasses || []).map(cl => `<option value="${cl.id}">${cl.name}</option>`).join('')}
+        ${(_promoState._destClasses || []).map(cl => `<option value="${cl.id}">${escapeHtml(cl.name)}</option>`).join('')}
       </select></td>
     </tr>`;
   });
@@ -4700,7 +4700,7 @@ async function promoLoadDestClasses() {
   // re-render target selects
   document.querySelectorAll('[id^="promo-target-"]').forEach(sel => {
     const sid = sel.id.replace('promo-target-', '');
-    sel.innerHTML = '<option value="">— Choisir —</option>' + _promoState._destClasses.map(cl => `<option value="${cl.id}">${cl.name}</option>`).join('');
+    sel.innerHTML = '<option value="">— Choisir —</option>' + _promoState._destClasses.map(cl => `<option value="${cl.id}">${escapeHtml(cl.name)}</option>`).join('');
   });
 }
 
@@ -6569,7 +6569,7 @@ function showCreateLevelModal() {
   api('/api/cycles').then(async res => {
     if (res?.ok) {
       const cycles = (await res.json()).cycles || [];
-      document.getElementById('new-level-cycle').innerHTML = cycles.map(c => `<option value="${c.id}">${c.name}</option>`).join('');
+      document.getElementById('new-level-cycle').innerHTML = cycles.map(c => `<option value="${c.id}">${escapeHtml(c.name)}</option>`).join('');
     }
   });
 }
@@ -6599,7 +6599,7 @@ async function loadClassSubjectsConfig() {
         <label style="font-size:13px;font-weight:600;color:var(--texte-secondaire)">Sélectionnez une classe</label>
         <select id="cs-class-select" style="margin-top:6px;padding:8px 12px;border:1px solid var(--border);border-radius:8px;font-size:13px;width:300px" onchange="loadClassSubjectsForClass(this.value)">
           <option value="">-- Choisir une classe --</option>
-          ${classes.map(cl => `<option value="${cl.id}">${cl.name} (${cl.academic_year || ''})</option>`).join('')}
+          ${classes.map(cl => `<option value="${cl.id}">${escapeHtml(cl.name)} (${cl.academic_year || ''})</option>`).join('')}
         </select>
       </div>
       <div id="cs-detail"></div>`;
