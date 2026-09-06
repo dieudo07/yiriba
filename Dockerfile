@@ -20,8 +20,9 @@ COPY . .
 # Create uploads dir
 RUN mkdir -p /app/uploads
 
-# Non-root user
-RUN adduser --disabled-password --gecos '' appuser
+# Non-root user — /app doit lui appartenir pour créer yiriba.db et écrire les uploads
+RUN adduser --disabled-password --gecos '' appuser \
+    && chown -R appuser:appuser /app
 USER appuser
 
 # Healthcheck
