@@ -1422,3 +1422,17 @@ a { text-decoration: none; color: inherit; }
   .sidebar .nav-chev { display: none; }
   .sidebar .nav-group-list { display: none !important; }
 }
+
+/* ── Correctifs complémentaires mobile : débordements texte ── */
+@media (max-width: 560px) {
+  /* Le texte des titres doit pouvoir se couper au lieu de pousser la page */
+  #main-content .welcome h1,
+  #main-content .welcome p { overflow-wrap: anywhere; }
+  #main-content .welcome { overflow: hidden; }
+  /* Les cartes indicateurs restent empilées sans déborder */
+  #main-content .indicator-row > * { min-width: 0; }
+  /* La barre d'outils (recherche + filtres + boutons) s'empile proprement */
+  #main-content .page-toolbar > * { max-width: 100%; }
+  /* Toute valeur numérique longue (montants, IDs) se coupe */
+  #main-content td, #main-content th { overflow-wrap: anywhere; }
+}
