@@ -7516,3 +7516,109 @@ window.addEventListener('resize', () => {
   const container = document.getElementById('fab-container');
   if (container && !container.hidden && window.innerWidth > 560) container.hidden = true;
 });
+
+/* ═══════════════════════════════════════════════════════════════
+   MOBILE — Tableaux en cartes empilées + menu contextuel d'actions
+   Les .yiriba-table sont transformées côté DOM : chaque <tr>
+   devient une carte, chaque <td> reçoit son libellé (thead), et
+   les boutons d'action sont regroupés dans un menu ⋯ unique.
+   ═══════════════════════════════════════════════════════════════ */
+
+function _mobiIsMobile() { return window.innerWidth <= 560; }
+
+// Ferme tous les menus contextuels ouverts
+function closeAllRowMenus() {
+  document.querySelectorAll('.row-menu.open').forEach(m => m.classList.remove('open'));
+}
+
+function buildRowMenu(actionsTd) {
+  // Récupère les boutons inline (title = libellé) et les copie dans le menu
+  const btns = [...actionsTd.querySelectorAll('.table-actions button')];
+  if (!btns.length) return null;
+  const wrap = document.createElement('div');
+  wrap.className = 'row-actions-wrap';
+  const menuBtn = document.createElement('button');
+  menuBtn.className = 'row-menu-btn';
+  menuBtn.setAttribute('aria-haspopup', 'true');
+  menuBtn.setAttribute('aria-label', 'Actions');
+  menuBtn.innerHTML = '<i class="fas fa-ellipsis-vertical"></i>';
+  const menu = document.createElement('div');
+  menu.className = 'row-menu';
+  btns.forEach(b => {
+    const item = document.createElement('button');
+    const isDanger = b.classList.contains('danger') || (b.getAttribute('style') || '').includes('rouge') || (b.getAttribute('style') || '').includes('#b45309');
+    if (isDanger) item.className = 'danger';
+    const title = b.getAttribute('title') || b.textContent.trim() || 'Action';
+    item.innerHTML = `<i class="${(b.querySelector('i') || {}).className || 'fas fa-circle'}"></i><span>${_fabEscape(title)}</span>`;
+    // Le label devient le texte du span, l'action click est copiée du bouton d'origine
+    item.addEventListener('click', (e) => {
+      e.stopPropagation();
+      closeAllRowMenus();
+      b.click(); // réutilise le handler + event.stopPropagation déjà en place
+    });
+    menu.appendChild(item);
+  });
+  menuBtn.addEventListener('click', (e) => {
+    e.stopPropagation();
+    const wasOpen = menu.classList.contains('open');
+    closeAllRowMenus();
+    if (!wasOpen) menu.classList.add('open');
+  });
+  wrap.appendChild(menuBtn);
+  wrap.appendChild(menu);
+  return wrap;
+}
+
+function mobilizeTables() {
+  if (!_mobiIsMobile()) {
+    // Desktop : retirer la transformation (le HTML d'origine est conservé,
+    // seuls data-label et la classe toggling sont appliqués ; les menus sont masqués par CSS)
+    document.querySelectorAll('.yiriba-table-wrap.mobi-cards').forEach(w => {
+      w.classList.remove('mobi-cards');
+      // Restaurer les actions inline
+      w.querySelectorAll('.row-actions-wrap').forEach(n => n.remove());
+      w.querySelectorAll('.table-actions').forEach(t => { t.style.display = ''; });
+    });
+    return;
+  }
+  document.querySelectorAll('.yiriba-table-wrap').forEach(wrap => {
+    if (wrap.dataset.mobiDone === '1') return;
+    const table = wrap.querySelector('.yiriba-table');
+    if (!table) return;
+    // Ne pas transformer les tables de saisie (formulaires en ligne : saisie de notes, appel)
+    if (table.id === 'grade-eval-table' || wrap.closest('.attendance-entry, #attendance-entry')) return;
+    const headers = [...table.querySelectorAll('thead th')].map(th =>
+      (th.textContent || '').trim()
+    );
+    wrap.classList.add('mobi-cards');
+    table.querySelectorAll('tbody tr').forEach(tr => {
+      if (tr.dataset.mobiDone === '1') return;
+      [...tr.children].forEach((td, idx) => {
+        const h = headers[idx];
+        if (h && h && h.toLowerCase() !== 'actions') td.setAttribute('data-label', h);
+        // Cellule Actions → menu ⋯
+        if (h && h.toLowerCase() === 'actions') {
+          td.setAttribute('data-label', 'Actions');
+          const inline = td.querySelector('.table-actions');
+          if (inline && !td.querySelector('.row-actions-wrap')) {
+            inline.style.display = 'none';
+            const menu = buildRowMenu(td);
+            if (menu) td.appendChild(menu);
+          }
+        }
+      });
+      tr.dataset.mobiDone = '1';
+    });
+    wrap.dataset.mobiDone = '1';
+  });
+}
+
+// Re-transformer à chaque changement de page / re-rendu de table
+const _mobiObserver = new MutationObserver(() => {
+  if (_mobiIsMobile()) mobilizeTables();
+});
+_mobiObserver.observe(document.body, { childList: true, subtree: true });
+window.addEventListener('resize', () => mobilizeTables());
+document.addEventListener('click', (e) => {
+  if (!e.target.closest('.row-actions-wrap')) closeAllRowMenus();
+});

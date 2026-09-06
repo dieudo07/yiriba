@@ -1138,8 +1138,8 @@ a { text-decoration: none; color: inherit; }
   .actions { grid-template-columns: 1fr; }
   .primary-action { grid-column: auto; }
   .indicator-row { grid-template-columns: 1fr; }
-  .yiriba-table th:nth-child(n+4),
-  .yiriba-table td:nth-child(n+4) { display: none; }
+  /* Colonnes 4+ : plus masquées — les tableaux deviennent des cartes
+     empilées via .mobi-cards (voir bloc MOBILE en fin de fichier) */
 
   /* Menu mobile : sidebar en overlay */
   .menu-toggle { display: inline-flex !important; }
@@ -1500,4 +1500,102 @@ a { text-decoration: none; color: inherit; }
 /* Affiché uniquement sur mobile (et quand l'utilisateur est connecté) */
 @media (min-width: 561px) {
   .fab-container { display: none !important; }
+}
+
+/* =========================================================
+   MOBILE — Tableaux en cartes empilées + menu d'actions
+   ========================================================= */
+
+/* Menu contextuel d'actions (⋯) */
+.row-actions-wrap { position: relative; display: inline-flex; }
+.row-menu-btn {
+  width: 34px; height: 34px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  color: var(--yiriba-text, #333);
+  font-size: 15px;
+  cursor: pointer;
+  display: grid; place-items: center;
+}
+.row-menu-btn:active { transform: scale(0.94); }
+.row-menu {
+  position: absolute;
+  right: 0; top: calc(100% + 6px);
+  min-width: 210px;
+  background: var(--surface, #fff);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.16);
+  padding: 6px;
+  z-index: 1300;
+  display: none;
+}
+.row-menu.open { display: block; }
+.row-menu button {
+  display: flex; align-items: center; gap: 10px;
+  width: 100%;
+  border: none; background: transparent;
+  padding: 10px 12px;
+  border-radius: 8px;
+  font-family: inherit; font-size: 13.5px; font-weight: 600;
+  color: var(--yiriba-text, #333);
+  cursor: pointer; text-align: left;
+}
+.row-menu button i { width: 18px; text-align: center; color: var(--yiriba-vert); }
+.row-menu button:hover { background: rgba(14,92,63,0.06); }
+.row-menu button.danger, .row-menu button.danger i { color: var(--yiriba-rouge); }
+.row-menu button.danger:hover { background: rgba(201,74,53,0.08); }
+
+@media (max-width: 560px) {
+  /* La table laisse place aux cartes */
+  .yiriba-table-wrap.mobi-cards .yiriba-table thead { display: none; }
+  .yiriba-table-wrap.mobi-cards .yiriba-table,
+  .yiriba-table-wrap.mobi-cards .yiriba-table tbody,
+  .yiriba-table-wrap.mobi-cards .yiriba-table tr,
+  .yiriba-table-wrap.mobi-cards .yiriba-table td {
+    display: block;
+    width: 100%;
+  }
+  .yiriba-table-wrap.mobi-cards .yiriba-table { border: 0; }
+  .yiriba-table-wrap.mobi-cards .yiriba-table tr {
+    background: var(--surface, #fff);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 6px 14px 12px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .yiriba-table-wrap.mobi-cards .yiriba-table td {
+    padding: 7px 0;
+    border: 0;
+  }
+  /* Chaque cellule : libellé au-dessus de la valeur */
+  .yiriba-table-wrap.mobi-cards .yiriba-table td[data-label]::before {
+    content: attr(data-label);
+    display: block;
+    font-size: 10.5px;
+    font-weight: 800;
+    letter-spacing: 0.6px;
+    text-transform: uppercase;
+    color: var(--texte-secondaire, #7a7a7a);
+    margin-bottom: 3px;
+  }
+  /* La 1re cellule = identité principale, sans libellé */
+  .yiriba-table-wrap.mobi-cards .yiriba-table td:first-child {
+    padding-top: 10px;
+    border-bottom: 1px dashed var(--border);
+    margin-bottom: 4px;
+  }
+  .yiriba-table-wrap.mobi-cards .yiriba-table td:first-child[data-label]::before { display: none; }
+  /* La cellule actions devient la ligne du menu ⋯ */
+  .yiriba-table-wrap.mobi-cards .yiriba-table td[data-label="Actions"] {
+    display: flex;
+    justify-content: flex-end;
+    padding-top: 4px;
+  }
+  .yiriba-table-wrap.mobi-cards .yiriba-table td[data-label="Actions"]::before { display: none; }
+  .yiriba-table-wrap.mobi-cards .yiriba-table td[data-label="Actions"] .table-actions { display: none; }
+  /* Pagination reste utilisable */
+  .yiriba-table-wrap.mobi-cards .pagination { padding: 4px 4px 8px; flex-wrap: wrap; gap: 8px; }
 }
