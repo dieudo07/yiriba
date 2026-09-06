@@ -33,6 +33,6 @@ EXPOSE 5050
 
 CMD ["gunicorn", "app.main:app", \
      "--worker-class", "uvicorn.workers.UvicornWorker", \
-     "--workers", "4", \
+     "--workers", "1", \
      "--bind", "0.0.0.0:5050", \
      "--timeout", "120"]
