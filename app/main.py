@@ -35,10 +35,11 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Startup: create tables + seed permissions. Shutdown: cleanup."""
     logger.info("🚀 Yiriba SaaS starting...")
 
-    # Create tables (dev only — Alembic in production)
-    if settings.APP_DEBUG:
-        async with engine.begin() as conn:
-            await conn.run_sync(Base.metadata.create_all)
+    # Create tables if missing (idempotent). With SQLite there is no Alembic
+    # migration chain, so create_all must ALWAYS run — including in production
+    # on Render, where the database starts empty.
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
 
     # Seed permissions + subscription plans
     async with async_session_factory() as db:
