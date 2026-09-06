@@ -1387,3 +1387,38 @@ a { text-decoration: none; color: inherit; }
   border-color: var(--yiriba-vert);
   box-shadow: 0 0 0 3px rgba(47, 143, 91, 0.10);
 }
+
+/* =========================================================
+   MOBILE — correctifs responsive (dashboard + sidebar)
+   ========================================================= */
+
+/* Grilles inline générées par le JS (dashboard & pages) :
+   repeat(4/3,1fr) éclate sur petit écran → on collapse. */
+@media (max-width: 800px) {
+  #main-content section[style*="repeat(4,1fr)"] { grid-template-columns: 1fr 1fr !important; }
+  #main-content section[style*="repeat(3,1fr)"] { grid-template-columns: 1fr 1fr !important; }
+}
+@media (max-width: 560px) {
+  #main-content section[style*="repeat(4,1fr)"],
+  #main-content section[style*="repeat(3,1fr)"] { grid-template-columns: 1fr !important; }
+  #main-content div[style*="repeat(auto-fill,minmax(380px,1fr))"],
+  #main-content div[style*="repeat(auto-fill,minmax(340px,1fr))"],
+  #main-content div[style*="repeat(auto-fill,minmax(280px,1fr))"] { grid-template-columns: 1fr !important; }
+
+  /* Les cartes du dashboard respirent plutôt que de compresser le texte */
+  #main-content .section-card { min-width: 0; }
+  #main-content .section-title { font-size: 13px !important; }
+
+  /* Sidebar mobile : largeur maîtrisée + catégories dépliables utilisables */
+  .sidebar { width: min(300px, 86vw) !important; }
+  .sidebar .nav-group-label { display: inline; }   /* labels visibles dans l'overlay */
+  .sidebar .nav-chev { display: inline; }
+}
+
+/* Tablette (800px) : sidebar compacte à icônes — cacher labels + chevrons
+   pour éviter le texte coupé, et empêcher l'ouverture des groupes */
+@media (max-width: 800px) and (min-width: 561px) {
+  .sidebar .nav-group-label { display: none; }
+  .sidebar .nav-chev { display: none; }
+  .sidebar .nav-group-list { display: none !important; }
+}
