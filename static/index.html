@@ -9,7 +9,7 @@
   <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="icon" type="image/jpeg" href="/logo/logo.jpg">
-  <link rel="stylesheet" href="/static/style.css?v=75">
+  <link rel="stylesheet" href="/static/style.css?v=76">
 </head>
 <body>
 
@@ -493,9 +493,16 @@
   </div>
 </div>
 <div id="toast-container" class="toast-container"></div>
+<!-- Bouton d'action flottant (mobile) : actions principales contextuelles -->
+<div id="fab-container" class="fab-container" hidden>
+  <div id="fab-menu" class="fab-menu" role="menu" aria-label="Actions rapides"></div>
+  <button id="fab-btn" class="fab-btn" aria-expanded="false" aria-haspopup="true" aria-label="Ouvrir les actions rapides" onclick="toggleFab()">
+    <i class="fas fa-plus" aria-hidden="true"></i>
+  </button>
+</div>
 <script src="/static/i18n.js?v=71"></script>
 <script src="/static/offline-sync.js?v=72"></script>  <script src="/static/admin_nav.js?v=1"></script>
-  <script src="/static/app.js?v=108"></script>
+  <script src="/static/app.js?v=109"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <script src="/static/teacher_portal.js?v=71"></script>
 <script src="/static/parent_portal.js?v=79"></script>

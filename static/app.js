@@ -764,6 +764,7 @@ function setActiveNav(id) {
 }
 function loadPage(page) {
   setActiveNav(page);
+  updateFab(page);
   // Portal-specific pages
   const portalPages = {
     // Teacher portal
@@ -7408,3 +7409,110 @@ async function decideJustification(attId, decision) {
     else { const j = await res.json().catch(() => ({})); showToast(j.detail || 'Erreur', 'error'); }
   } catch { showToast('Erreur réseau', 'error'); }
 }
+
+/* ═══════════════════════════════════════════════════════════════
+   FAB — Bouton d'action flottant (mobile)
+   Affiche les actions principales selon la page et le portail.
+   ═══════════════════════════════════════════════════════════════ */
+
+const FAB_ACTIONS_BY_PAGE = {
+  // ── Portail Admin ──
+  students: [
+    { icon: 'fa-user-plus', label: 'Ajouter un élève', fn: () => showAddStudentModal() },
+    { icon: 'fa-file-import', label: 'Importer des élèves', fn: () => showImportModal() },
+  ],
+  classes: [
+    { icon: 'fa-plus', label: 'Ajouter une classe', fn: () => showAddClassModal() },
+  ],
+  grades: [
+    { icon: 'fa-pen-fancy', label: 'Créer une évaluation', fn: () => showCreateEvalModal() },
+    { icon: 'fa-pen-to-square', label: 'Saisir des notes', fn: () => showGradeEntryModal() },
+  ],
+  payments: [
+    { icon: 'fa-money-bill-wave', label: 'Enregistrer un paiement', fn: () => showPaymentModal() },
+  ],
+  communication: [
+    { icon: 'fa-bullhorn', label: 'Aller aux annonces', fn: () => { loadPage('communication'); setTimeout(() => { const t = document.getElementById('ann-title'); if (t) t.focus(); }, 800); } },
+  ],
+  messaging: [
+    { icon: 'fa-envelope', label: 'Nouveau message', fn: () => showNewMessageModal() },
+  ],
+  // ── Portail Enseignant ──
+  't-grades': [
+    { icon: 'fa-pen-fancy', label: 'Créer une évaluation', fn: () => showCreateEvalModal() },
+  ],
+  't-attendance': [
+    { icon: 'fa-clipboard-check', label: "Faire l'appel", fn: () => loadPage('t-attendance') },
+  ],
+  't-bulletins': [
+    { icon: 'fa-file-lines', label: 'Bulletins', fn: () => loadPage('t-bulletins') },
+  ],
+  // ── Portail Parent ──
+  'p-messages': [
+    { icon: 'fa-envelope', label: 'Nouveau message', fn: () => showNewMessageModal() },
+  ],
+};
+
+function _fabEscape(v) {
+  return String(v == null ? '' : v)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function updateFab(page) {
+  const container = document.getElementById('fab-container');
+  const menu = document.getElementById('fab-menu');
+  if (!container || !menu) return;
+  const actions = FAB_ACTIONS_BY_PAGE[page] || [];
+  const isMobile = window.innerWidth <= 560;
+  if (!actions.length || !isMobile || !state.portal) {
+    container.hidden = true;
+    container.classList.remove('open');
+    menu.innerHTML = '';
+    return;
+  }
+  menu.innerHTML = actions.map((a, i) =>
+    `<button class="fab-action" role="menuitem" data-fab-idx="${i}">` +
+    `<span>${_fabEscape(a.label)}</span><i class="fas ${a.icon}" aria-hidden="true"></i></button>`
+  ).join('');
+  menu.querySelectorAll('.fab-action').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const act = actions[parseInt(btn.dataset.fabIdx, 10)];
+      closeFab();
+      if (act) act.fn();
+    });
+  });
+  container.hidden = false;
+}
+
+function toggleFab() {
+  const container = document.getElementById('fab-container');
+  const btn = document.getElementById('fab-btn');
+  if (!container) return;
+  const open = container.classList.toggle('open');
+  if (btn) btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+}
+function closeFab() {
+  const container = document.getElementById('fab-container');
+  const btn = document.getElementById('fab-btn');
+  if (!container) return;
+  container.classList.remove('open');
+  if (btn) btn.setAttribute('aria-expanded', 'false');
+}
+window.toggleFab = toggleFab;
+window.closeFab = closeFab;
+
+// Fermer le FAB si on tape en dehors
+document.addEventListener('click', (e) => {
+  const container = document.getElementById('fab-container');
+  if (container && !container.hidden && container.classList.contains('open')
+      && !e.target.closest('.fab-container')) {
+    closeFab();
+  }
+});
+// Fermer aussi au scroll de la page
+document.addEventListener('scroll', () => closeFab(), { passive: true });
+window.addEventListener('resize', () => {
+  const container = document.getElementById('fab-container');
+  if (container && !container.hidden && window.innerWidth > 560) container.hidden = true;
+});

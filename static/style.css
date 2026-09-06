@@ -1436,3 +1436,68 @@ a { text-decoration: none; color: inherit; }
   /* Toute valeur numérique longue (montants, IDs) se coupe */
   #main-content td, #main-content th { overflow-wrap: anywhere; }
 }
+
+/* =========================================================
+   FAB — Bouton d'action flottant (mobile uniquement)
+   ========================================================= */
+.fab-container {
+  position: fixed;
+  right: 18px;
+  bottom: calc(18px + env(safe-area-inset-bottom, 0px));
+  z-index: 1200;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 12px;
+}
+.fab-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  border: none;
+  background: linear-gradient(135deg, var(--yiriba-vert), var(--yiriba-vert-feuille));
+  color: #fff;
+  font-size: 22px;
+  box-shadow: 0 6px 20px rgba(14, 92, 63, 0.4);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  transition: transform var(--transition), box-shadow var(--transition);
+}
+.fab-btn:active { transform: scale(0.92); }
+.fab-btn .fa-plus { transition: transform 0.25s ease; }
+.fab-container.open .fab-btn .fa-plus { transform: rotate(45deg); }
+.fab-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+  opacity: 0;
+  pointer-events: none;
+  transform: translateY(10px);
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+.fab-container.open .fab-menu { opacity: 1; pointer-events: auto; transform: translateY(0); }
+.fab-action {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: none;
+  border-radius: 24px;
+  padding: 10px 16px;
+  background: #fff;
+  color: var(--yiriba-vert);
+  font-family: inherit;
+  font-size: 13.5px;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.18);
+  cursor: pointer;
+  white-space: nowrap;
+}
+.fab-action i { width: 18px; text-align: center; }
+.fab-action:active { transform: scale(0.96); }
+
+/* Affiché uniquement sur mobile (et quand l'utilisateur est connecté) */
+@media (min-width: 561px) {
+  .fab-container { display: none !important; }
+}
