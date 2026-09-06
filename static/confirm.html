@@ -1,0 +1,88 @@
+﻿<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Activation du compte — YIRIBA</title>
+<link rel="icon" type="image/jpeg" href="/logo/logo.jpg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;600;700&family=Source+Sans+3:wght@400;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --yiriba-vert: #2e7d32;
+    --yiriba-vert-profond: #1b5e20;
+    --texte-secondaire: #5f6368;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Source Sans 3', sans-serif;
+    background: linear-gradient(135deg, #f0faf4, #e8f5e9);
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 20px;
+  }
+  .card {
+    background: white; border-radius: 16px; box-shadow: 0 10px 40px rgba(27,94,32,0.12);
+    max-width: 430px; width: 100%; padding: 36px 30px; text-align: center;
+  }
+  .badge {
+    width: 64px; height: 64px; border-radius: 50%; background: #e8f5e9;
+    display: flex; align-items: center; justify-content: center; margin: 0 auto 16px;
+  }
+  .badge i { font-size: 30px; color: var(--yiriba-vert); font-style: normal; }
+  h1 { font-family: 'Sora', sans-serif; font-size: 19px; color: var(--yiriba-vert-profond); margin-bottom: 8px; }
+  p { font-size: 14px; color: var(--texte-secondaire); line-height: 1.6; margin-bottom: 20px; }
+  .btn {
+    display: inline-flex; align-items: center; gap: 8px; justify-content: center;
+    background: var(--yiriba-vert); color: white; border: none; border-radius: 10px;
+    padding: 12px 24px; font-size: 14px; font-weight: 600; cursor: pointer; text-decoration: none;
+  }
+  .btn:hover { background: var(--yiriba-vert-profond); }
+  .spinner { animation: spin 1s linear infinite; display: inline-block; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .error { color: #c62828; }
+  .success { color: #2e7d32; }
+</style>
+</head>
+<body>
+<div class="card" id="card">
+  <div class="badge"><i class="spinner">&#8635;</i></div>
+  <h1>Activation du compte</h1>
+  <p id="status">Vérification du lien…</p>
+</div>
+<script>
+  const API = '/api';
+  (async () => {
+    const card = document.getElementById('card');
+    const setUI = (icon, title, message, ok) => {
+      card.innerHTML = `
+        <div class="badge"><i>${icon}</i></div>
+        <h1>${title}</h1>
+        <p class="${ok ? 'success' : 'error'}">${message}</p>
+        ${ok ? '<a class="btn" href="/">Connexion <span>&rarr;</span></a>'
+             : '<a class="btn" href="/">Retour à la connexion</a>'}`;
+    };
+    const params = new URLSearchParams(window.location.search);
+    const token = params.get('token');
+    if (!token) { setUI('&#9888;', 'Lien invalide', 'Aucun lien de confirmation trouvé.', false); return; }
+    try {
+      const r = await fetch(API + '/auth/confirm-account', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ token })
+      });
+      const d = await r.json();
+      if (!r.ok) {
+        const msg = d.detail ? (typeof d.detail === 'string' ? d.detail : JSON.stringify(d.detail)) : 'Le lien est invalide ou a expiré.';
+        setUI('&#9888;', 'Activation impossible', msg, false);
+        return;
+      }
+      setUI('&#10003;', 'Compte activé !', d.message || 'Votre compte est activé. Vous pouvez vous connecter.', true);
+    } catch (e) {
+      setUI('&#9888;', 'Erreur réseau', 'Impossible de contacter le serveur. Réessayez dans un instant.', false);
+    }
+  })();
+</script>
+</body>
+</html>

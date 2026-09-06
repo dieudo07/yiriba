@@ -1,0 +1,71 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.egg-info/
+dist/
+build/
+*.egg
+
+# Virtual env
+.venv/
+venv/
+env/
+
+# Environment
+.env
+.env.local
+.env.*.local
+
+# Database
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+test_yiriba.db
+yiriba.db.backup*
+
+# Backup & seed files
+*.backup*
+seed_*.py
+migrate_*.py
+verify_*.py
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+
+# Uploads (user content)
+uploads/
+!uploads/.gitkeep
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Obsidian vault (docs are in docs/)
+.obsidian/
+
+# Logs
+*.log
+
+# Ad-hoc debug scripts & artifacts
+*.log.err
+uvicorn_log.txt
+check_quotes.py
+find_js_error.py
+create_year.py
+test_promotion_flow.py
+test_transfer.py
+test_logo.png
+sample_pdfs/
+GUIDE_DEPANNAGE_YIRIBA.pdf

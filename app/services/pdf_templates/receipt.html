@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<style>
+  @font-face {
+    font-family: 'UniFR';
+    src: url('file:///{{ _tpl_dir }}/fonts/UniFR.ttf');
+  }
+  * { margin: 0; padding: 0; }
+  body {
+    font-family: 'UniFR', Helvetica, Arial, sans-serif;
+    font-size: 10pt;
+    color: #222;
+    line-height: 1.5;
+  }
+
+  /* ── Header ─────────────────────────────────────────── */
+  .header-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-bottom: 3px solid #0E5C3F;
+    padding-bottom: 8px;
+    margin-bottom: 12px;
+  }
+  .header-table td {
+    vertical-align: middle;
+    padding: 4px;
+  }
+  .logo-cell { width: 65px; text-align: center; }
+  .logo-placeholder {
+    width: 50px;
+    height: 50px;
+    background: #0E5C3F;
+    border-radius: 8px;
+    color: white;
+    font-weight: bold;
+    font-size: 18px;
+    line-height: 50px;
+    display: inline-block;
+  }
+  .school-name {
+    font-size: 15pt;
+    font-weight: bold;
+    color: #0E5C3F;
+  }
+  .school-details { font-size: 8pt; color: #666; }
+
+  /* ── Title ──────────────────────────────────────────── */
+  .title-bar {
+    text-align: center;
+    margin: 10px 0;
+    padding: 8px;
+    background: #0E5C3F;
+    color: white;
+  }
+  .title-bar h1 { font-size: 14pt; margin: 0; }
+  .receipt-number { font-size: 9pt; opacity: 0.9; margin-top: 2px; }
+
+  /* ── Info Grid ──────────────────────────────────────── */
+  .info-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+  }
+  .info-table td {
+    width: 48%;
+    border: 1px solid #ddd;
+    padding: 8px;
+    vertical-align: top;
+  }
+  .info-table td.spacer { width: 4%; border: none; background: white; }
+  .box-title {
+    font-size: 8pt;
+    text-transform: uppercase;
+    color: #0E5C3F;
+    font-weight: bold;
+    margin-bottom: 5px;
+    border-bottom: 1px solid #eee;
+    padding-bottom: 3px;
+  }
+  .field {
+    font-size: 9pt;
+    margin: 2px 0;
+  }
+  .field .lbl {
+    color: #888;
+    display: inline-block;
+    width: 90px;
+  }
+
+  /* ── Payment Table ──────────────────────────────────── */
+  .payment-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    font-size: 9.5pt;
+  }
+  .payment-table th {
+    background: #0E5C3F;
+    color: white;
+    padding: 6px 8px;
+    text-align: left;
+    font-weight: 600;
+    border: 1px solid #0a4a33;
+  }
+  .payment-table td {
+    padding: 6px 8px;
+    border: 1px solid #ddd;
+  }
+
+  /* ── Amount ─────────────────────────────────────────── */
+  .amount-box {
+    text-align: center;
+    margin: 12px 0;
+    padding: 10px;
+    border: 2px solid #0E5C3F;
+    background: #f0f8f0;
+  }
+  .amount-label {
+    font-size: 9pt;
+    color: #666;
+    text-transform: uppercase;
+  }
+  .amount-value {
+    font-size: 18pt;
+    font-weight: bold;
+    color: #0E5C3F;
+  }
+  .amount-words {
+    font-size: 9pt;
+    color: #555;
+    font-style: italic;
+  }
+
+  /* ── Verification ───────────────────────────────────── */
+  .verify-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 10px 0;
+    background: #f8f8f8;
+    border: 1px dashed #ccc;
+  }
+  .verify-table td {
+    padding: 8px 10px;
+    vertical-align: middle;
+  }
+  .verify-text {
+    font-size: 8pt;
+    color: #888;
+  }
+  .verify-text strong { color: #555; }
+
+  /* ── Signatures ─────────────────────────────────────── */
+  .sig-table {
+    width: 100%;
+    margin-top: 25px;
+  }
+  .sig-table td {
+    width: 45%;
+    text-align: center;
+    padding-top: 40px;
+  }
+  .sig-line {
+    border-top: 1px solid #333;
+    padding-top: 4px;
+    font-size: 9pt;
+    font-weight: 600;
+  }
+  .sig-sub { font-size: 7.5pt; color: #888; }
+
+  /* ── Footer ─────────────────────────────────────────── */
+  .footer {
+    margin-top: 10px;
+    padding-top: 5px;
+    border-top: 1px solid #ddd;
+    text-align: center;
+    font-size: 7.5pt;
+    color: #aaa;
+  }
+  .warning {
+    color: #c0392b;
+    font-weight: 600;
+    font-size: 8pt;
+  }
+</style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <table class="header-table">
+    <tr>
+      <td class="logo-cell">
+        {% if school_logo_url %}
+          <img src="{{ school_logo_path }}" width="50" height="50" alt="Logo">
+        {% else %}
+          <div class="logo-placeholder">{{ school_initial }}</div>
+        {% endif %}
+      </td>
+      <td>
+        <div class="school-name">{{ school_name }}</div>
+        <div class="school-details">
+          {% if school_address %}{{ school_address }}{% endif %}
+          {% if school_city %} — {{ school_city }}, {{ school_country }}{% endif %}
+          {% if school_phone %} | Tél: {{ school_phone }}{% endif %}
+        </div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- TITLE -->
+  <div class="title-bar">
+    <h1>REÇU DE PAIEMENT</h1>
+    <div class="receipt-number">N° {{ receipt_number }}</div>
+  </div>
+
+  <!-- INFO -->
+  <table class="info-table">
+    <tr>
+      <td>
+        <div class="box-title">Élève</div>
+        <div class="field"><span class="lbl">Nom :</span> {{ student_last_name }}</div>
+        <div class="field"><span class="lbl">Prénom(s) :</span> {{ student_first_name }}</div>
+        <div class="field"><span class="lbl">Matricule :</span> {{ matricule }}</div>
+        <div class="field"><span class="lbl">Classe :</span> {{ class_name }}</div>
+      </td>
+      <td class="spacer"></td>
+      <td>
+        <div class="box-title">Paiement</div>
+        <div class="field"><span class="lbl">Date :</span> {{ payment_date }}</div>
+        <div class="field"><span class="lbl">Mode :</span> {{ payment_method }}</div>
+        <div class="field"><span class="lbl">Motif :</span> {{ payment_motif }}</div>
+        {% if transaction_ref %}
+        <div class="field"><span class="lbl">Référence :</span> {{ transaction_ref }}</div>
+        {% endif %}
+        <div class="field"><span class="lbl">Caissier :</span> {{ cashier_name }}</div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- PAYMENT TABLE -->
+  <table class="payment-table">
+    <thead>
+      <tr>
+        <th>Description</th>
+        <th style="width:15%">Période</th>
+        <th style="width:20%; text-align:right">Montant payé</th>
+        <th style="width:20%; text-align:right">Solde restant</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>{{ payment_motif }}</td>
+        <td>{{ payment_period }}</td>
+        <td style="text-align:right"><strong>{{ '{:,.0f}'.format(amount) }} FCFA</strong></td>
+        <td style="text-align:right; color:#c0392b;"><strong>{{ '{:,.0f}'.format(remaining_balance) }} FCFA</strong></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- AMOUNT -->
+  <div class="amount-box">
+    <div class="amount-label">Montant Reçu</div>
+    <div class="amount-value">{{ '{:,.0f}'.format(amount) }} FCFA</div>
+    <div class="amount-words">{{ amount_in_words }}</div>
+    <div style="margin-top:6px; font-size:8.5pt; color:#666;">Solde restant après ce versement : <strong>{{ '{:,.0f}'.format(remaining_balance) }} FCFA</strong></div>
+  </div>
+
+  <!-- VERIFICATION -->
+  <table class="verify-table">
+    <tr>
+      <td style="width:60px; text-align:center">
+        <img src="{{ qr_path }}" width="45" height="45" alt="QR">
+      </td>
+      <td class="verify-text">
+        <strong>Vérification :</strong> Scannez le code QR ou rendez-vous sur<br>
+        {{ verification_url }}<br>
+        Ce reçu est authenticable et traçable via la plateforme YIRIBA.
+      </td>
+    </tr>
+  </table>
+
+  <!-- SIGNATURES -->
+  <table class="sig-table">
+    <tr>
+      <td>
+        <div class="sig-line">Le Caissier / Comptable</div>
+        <div class="sig-sub">{{ cashier_name }}</div>
+      </td>
+      <td style="width:10%"></td>
+      <td>
+        <div class="sig-line">Le Directeur</div>
+        <div class="sig-sub">{{ school_name }}</div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    <div class="warning">CE REÇU NE PEUT ÊTRE REPRIS APRÈS LE PAIEMENT</div>
+    Document généré par YIRIBA — {{ generated_at }} | Année scolaire {{ academic_year }}
+  </div>
+
+</body>
+</html>

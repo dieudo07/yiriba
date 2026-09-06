@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>YIRIBA — Console Éditeur</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="stylesheet" href="/static/style.css" />
+  <style>
+    html, body { height: 100%; }
+    body { background: var(--yiriba-ivoire); }
+
+    /* --- Auth screen --- */
+    #auth-screen { align-items: center; justify-content: center; flex-direction: column; gap: 18px; display: flex; min-height: 100vh; }
+    .auth-card { width: 380px; background: var(--surface); border-radius: var(--radius-lg); padding: 32px; box-shadow: var(--ombre-legere); }
+    .auth-card h2 { color: var(--yiriba-vert-foret); margin-bottom: 6px; }
+    .auth-card p { color: var(--texte-secondaire); font-size: 14px; margin-bottom: 18px; }
+    .auth-card label { display: block; font-size: 13px; font-weight: 600; color: var(--texte); margin: 12px 0 6px; }
+    .auth-card input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
+    .auth-error { color: var(--yiriba-rouge); font-size: 13px; margin-top: 10px; min-height: 18px; }
+
+    /* --- Console --- */
+    #app-screen { display: none; }
+    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; background: var(--yiriba-vert-foret); color: #fff; }
+    .topbar .brand { font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 10px; }
+    .topbar .user { font-size: 13px; color: var(--texte-sidebar); display: flex; align-items: center; gap: 14px; }
+    .topbar button { background: rgba(255,255,255,0.12); color: #fff; border: none; padding: 8px 14px; border-radius: var(--radius-sm); }
+
+    .container { max-width: 1200px; margin: 0 auto; padding: 28px; }
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .card { background: var(--surface); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--ombre-legere); }
+    .card .k { font-size: 12px; color: var(--texte-secondaire); text-transform: uppercase; letter-spacing: .04em; }
+    .card .v { font-size: 28px; font-weight: 700; color: var(--yiriba-vert-foret); margin-top: 6px; }
+    .card .v.ok { color: var(--yiriba-vert-feuille); }
+    .card .v.warn { color: var(--yiriba-jaune); }
+    .card .v.bad { color: var(--yiriba-rouge); }
+
+    .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+    .toolbar input { padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); width: 300px; }
+    .toolbar button { background: var(--yiriba-vert); color: #fff; border: none; padding: 9px 16px; border-radius: var(--radius-sm); }
+
+    table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--ombre-legere); }
+    th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    th { background: var(--surface-soft); color: var(--texte-secondaire); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
+    tr:hover td { background: rgba(47,143,91,0.05); }
+
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .b-trial { background: #FFF6D6; color: #8a6d00; }
+    .b-active { background: #E2F4EA; color: var(--yiriba-vert-feuille); }
+    .b-expired { background: #FBE4DF; color: var(--yiriba-rouge); }
+    .b-cancelled { background: #EFECE5; color: var(--texte-secondaire); }
+    .b-read { background: #EFECE5; color: var(--texte-secondaire); }
+    .b-full { background: #E2F4EA; color: var(--yiriba-vert-feuille); }
+
+    .actions button { margin-right: 6px; border: 1px solid var(--border); background: var(--surface); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 12px; }
+    .actions button.primary { background: var(--yiriba-vert); color: #fff; border-color: var(--yiriba-vert); }
+    .actions button.danger { color: var(--yiriba-rouge); border-color: rgba(201,74,53,0.4); }
+
+    .pager { margin-top: 14px; display: flex; justify-content: flex-end; gap: 8px; align-items: center; color: var(--texte-secondaire); font-size: 14px; }
+    .pager button { border: 1px solid var(--border); background: var(--surface); padding: 6px 12px; border-radius: var(--radius-sm); }
+
+    /* --- Modal --- */
+    .modal-backdrop { position: fixed; inset: 0; background: rgba(8,61,43,0.45); display: none; align-items: center; justify-content: center; z-index: 50; }
+    .modal-backdrop.open { display: flex; }
+    .modal { background: var(--surface); border-radius: var(--radius-lg); max-width: 640px; width: 92%; max-height: 88vh; overflow: auto; padding: 28px; box-shadow: 0 24px 60px rgba(8,61,43,0.25); }
+    .modal h3 { color: var(--yiriba-vert-foret); margin-bottom: 16px; }
+    .modal .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .modal .row .k { color: var(--texte-secondaire); }
+    .modal select, .modal input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-top: 6px; }
+    .modal .form-group { margin-top: 14px; }
+    .modal .form-group label { font-size: 13px; font-weight: 600; display: block; }
+    .modal .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
+    .modal .form-actions button { padding: 9px 16px; border-radius: var(--radius-sm); border: none; }
+    .modal .form-actions .btn-primary { background: var(--yiriba-vert); color: #fff; }
+    .modal .form-actions .btn-ghost { background: var(--surface-soft); color: var(--texte); }
+    .btn-close { float: right; background: none; border: none; font-size: 20px; color: var(--texte-secondaire); }
+
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--yiriba-vert-foret); color: #fff; padding: 12px 18px; border-radius: var(--radius-md); box-shadow: var(--ombre-legere); display: none; z-index: 60; max-width: 400px; }
+    .toast.show { display: block; }
+    .toast.error { background: var(--yiriba-rouge); }
+
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 16px; }
+    .detail-grid h4 { color: var(--yiriba-vert-foret); margin: 10px 0; font-size: 15px; }
+    .detail-grid table, .detail-grid .box { background: var(--surface-soft); }
+    .detail-grid th, .detail-grid td { background: transparent; }
+    .code { font-family: monospace; background: var(--surface-soft); padding: 2px 6px; border-radius: 4px; }
+    .temp-pass { background: #FFF6D6; border: 1px dashed #d8a800; border-radius: var(--radius-sm); padding: 12px; margin-top: 12px; font-size: 14px; }
+    .temp-pass .tp { font-weight: 700; font-size: 18px; letter-spacing: .06em; }
+    @media (max-width: 900px) { .detail-grid { grid-template-columns: 1fr; } .toolbar input { width: 100%; } }
+  </style>
+</head>
+<body>
+  <!-- AUTH -->
+  <div id="auth-screen">
+    <div class="auth-card">
+      <h2>Console Éditeur YIRIBA</h2>
+      <p>Espace réservé à l'administration plateforme.</p>
+      <form id="auth-form">
+        <label for="email">Email</label>
+        <input type="email" id="email" autocomplete="username" required />
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" autocomplete="current-password" required />
+        <button type="submit" style="width:100%; margin-top:20px; background:var(--yiriba-vert); color:#fff; border:none; padding:11px; border-radius:var(--radius-sm); font-weight:600;">Se connecter</button>
+      </form>
+      <div class="auth-error" id="auth-error"></div>
+    </div>
+  </div>
+
+  <!-- CONSOLE -->
+  <div id="app-screen">
+    <div class="topbar">
+      <div class="brand">🌳 YIRIBA — Console Éditeur</div>
+      <div class="user">
+        <span id="user-email"></span>
+        <button id="logout-btn">Déconnexion</button>
+      </div>
+    </div>
+
+    <div class="container">
+      <div class="cards" id="cards"></div>
+
+      <div class="toolbar">
+        <input type="search" id="search" placeholder="Rechercher une école (nom, slug, ville)…" />
+        <button id="search-btn">Rechercher</button>
+        <button id="refresh-btn" style="background:var(--surface); color:var(--yiriba-vert); border:1px solid var(--border);">⟳ Actualiser</button>
+      </div>
+
+      <table>
+        <thead>
+          <tr>
+            <th>École</th>
+            <th>Plan</th>
+            <th>Statut</th>
+            <th>Accès</th>
+            <th>Élèves</th>
+            <th>Utilisateurs</th>
+            <th>Inscrite le</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="schools-body"></tbody>
+      </table>
+      <div class="pager" id="pager"></div>
+    </div>
+  </div>
+
+  <!-- DÉTAIL MODAL -->
+  <div class="modal-backdrop" id="detail-modal">
+    <div class="modal">
+      <button class="btn-close" id="detail-close">✕</button>
+      <h3 id="detail-title">Détail de l'école</h3>
+      <div id="detail-content"></div>
+    </div>
+  </div>
+
+  <!-- CONFIRM MODAL -->
+  <div class="modal-backdrop" id="confirm-modal">
+    <div class="modal" style="max-width:460px;">
+      <h3 id="confirm-title">Confirmer</h3>
+      <p id="confirm-text"></p>
+      <div class="form-actions">
+        <button class="btn-ghost" id="confirm-cancel">Annuler</button>
+        <button class="btn-primary" id="confirm-ok">Confirmer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PLAN MODAL -->
+  <div class="modal-backdrop" id="plan-modal">
+    <div class="modal" style="max-width:480px;">
+      <button class="btn-close" id="plan-close">✕</button>
+      <h3 id="plan-title">Gérer le forfait</h3>
+      <div class="form-group">
+        <label for="plan-code">Forfait</label>
+        <select id="plan-code">
+          <option value="graine">Graine — 100 élèves</option>
+          <option value="racine">Racine — 400 élèves</option>
+          <option value="baobab">Baobab — Illimité</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="plan-price">Tarif personnalisé par élève / an (Baobab, optionnel)</label>
+        <input type="text" id="plan-price" placeholder="ex : 15000" />
+      </div>
+      <div class="form-group">
+        <label for="plan-amount">Montant forfaitaire négocié (Baobab, optionnel)</label>
+        <input type="text" id="plan-amount" placeholder="ex : 1500000" />
+      </div>
+      <div class="form-actions">
+        <button class="btn-ghost" id="plan-close2">Annuler</button>
+        <button class="btn-primary" id="plan-save">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="/static/platform_admin.js"></script>
+</body>
+</html>

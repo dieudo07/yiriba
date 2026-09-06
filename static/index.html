@@ -1,0 +1,504 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Yiriba — Tableau de bord</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Sora:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+  <link rel="icon" type="image/jpeg" href="/logo/logo.jpg">
+  <link rel="stylesheet" href="/static/style.css?v=73">
+</head>
+<body>
+
+<div id="offline-bar" class="offline-bar"><i class="fas fa-wifi-slash"></i> Mode hors-ligne — synchronisation à la reconnexion</div>
+
+<!-- ═══ AUTH ═══ -->
+<div id="auth-screen" class="auth-screen">
+  <!-- LEFT PANEL: Branding -->
+  <div class="auth-left">
+    <div class="auth-left-overlay"></div>
+    <div class="auth-left-content">
+      <!-- Logo -->
+      <div class="auth-logo-row">
+        <img src="/logo/logo.jpg" alt="Yiriba" class="auth-logo-img" onerror="this.style.display='none'">
+        <div class="auth-logo-text">
+          <h1 class="auth-brand-name">YIRIBA</h1>
+          <p class="auth-brand-slogan" data-i18n="brand.slogan">VOS RACINES DIGITALISÉES</p>
+        </div>
+      </div>
+      <!-- Title -->
+      <h2 class="auth-headline"><span data-i18n="brand.headline1">La gestion scolaire</span><br><span data-i18n="brand.headline2">réinventée</span></h2>
+      <p class="auth-description" data-i18n="brand.description">YIRIBA accompagne les établissements scolaires dans leur transformation digitale simple, sécurisée et efficace.</p>
+      <!-- Yellow divider -->
+      <div class="auth-divider"></div>
+      <!-- Feature blocks -->
+      <div class="auth-features">
+        <div class="auth-feature">
+          <div class="auth-feature-icon"><i class="fas fa-graduation-cap"></i></div>
+          <div class="auth-feature-text">
+            <strong data-i18n="brand.feature1.title">Gestion complète</strong>
+            <span data-i18n="brand.feature1.desc">Notes, présences, bulletins et plus encore.</span>
+          </div>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon"><i class="fas fa-chart-bar"></i></div>
+          <div class="auth-feature-text">
+            <strong data-i18n="brand.feature2.title">Pilotage en temps réel</strong>
+            <span data-i18n="brand.feature2.desc">Tableaux de bord et statistiques avancées.</span>
+          </div>
+        </div>
+        <div class="auth-feature">
+          <div class="auth-feature-icon"><i class="fas fa-shield-halved"></i></div>
+          <div class="auth-feature-text">
+            <strong data-i18n="brand.feature3.title">Sécurisé & fiable</strong>
+            <span data-i18n="brand.feature3.desc">Vos données sont protégées et accessibles partout.</span>
+          </div>
+        </div>
+      </div>
+      <!-- Footer -->
+      <div class="auth-left-footer" data-i18n="brand.copyright">© 2025 Yiriba — Tous droits réservés</div>
+    </div>
+    <!-- School illustration silhouette -->
+    <div class="auth-school-illustration">
+      <svg viewBox="0 0 600 120" fill="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:auto;opacity:0.15">
+        <rect x="200" y="30" width="60" height="80" rx="3" fill="white"/>
+        <rect x="265" y="50" width="50" height="60" rx="3" fill="white"/>
+        <rect x="175" y="55" width="30" height="55" rx="2" fill="white"/>
+        <polygon points="200,30 230,10 260,30" fill="white"/>
+        <rect x="280" y="20" width="8" height="90" rx="2" fill="white"/>
+        <circle cx="284" cy="15" r="8" fill="white"/>
+        <circle cx="130" cy="70" r="20" fill="white" opacity="0.5"/>
+        <rect x="128" y="70" width="4" height="40" rx="1" fill="white" opacity="0.5"/>
+        <circle cx="370" cy="65" r="18" fill="white" opacity="0.5"/>
+        <rect x="368" y="65" width="4" height="45" rx="1" fill="white" opacity="0.5"/>
+        <circle cx="420" cy="60" r="15" fill="white" opacity="0.4"/>
+        <rect x="418" y="60" width="4" height="50" rx="1" fill="white" opacity="0.4"/>
+        <ellipse cx="80" cy="100" rx="30" ry="12" fill="white" opacity="0.3"/>
+        <ellipse cx="500" cy="95" rx="25" ry="10" fill="white" opacity="0.3"/>
+        <circle cx="160" cy="90" r="6" fill="white" opacity="0.35"/>
+        <circle cx="340" cy="95" r="5" fill="white" opacity="0.3"/>
+        <circle cx="450" cy="90" r="7" fill="white" opacity="0.25"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- CURVED SEPARATOR -->
+  <div class="auth-curve">
+    <svg viewBox="0 0 120 800" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg" style="width:100%;height:100%">
+      <path d="M120,0 C40,100 0,200 0,400 C0,600 40,700 120,800 L120,0 Z" fill="#F7F4EA"/>
+    </svg>
+  </div>
+
+  <!-- RIGHT PANEL: Form -->
+  <div class="auth-right">
+
+    <!-- Login Card -->
+    <div class="auth-card">
+      <!-- Lock icon -->
+      <div class="auth-card-icon">
+        <i class="fas fa-lock"></i>
+      </div>
+      <!-- Welcome -->
+      <h3 class="auth-card-title" data-i18n="auth.welcome">Bienvenue sur YIRIBA</h3>
+      <p class="auth-card-subtitle" data-i18n="auth.subtitle">Connectez-vous à votre espace</p>
+
+      <!-- Tabs -->
+      <div class="auth-tabs">
+        <button class="auth-tab active" onclick="showAuthTab('login')" data-i18n="auth.tab.login">Connexion</button>
+        <button class="auth-tab" onclick="showAuthTab('register')" data-i18n="auth.tab.register">Créer une école</button>
+      </div>
+
+      <!-- Login Form -->
+      <form id="login-form" onsubmit="handleLogin(event)">
+        <div class="auth-field-group">
+          <label data-i18n="login.email">Email ou identifiant</label>
+          <div class="auth-input-wrap">
+            <i class="fas fa-user auth-input-icon"></i>
+            <input type="text" id="login-email" data-i18n-placeholder="login.email.placeholder" placeholder="ex : directeur@ecole.com ou YRB-000001" required>
+          </div>
+        </div>
+        <div class="auth-field-group">
+          <label data-i18n="login.password">Mot de passe</label>
+          <div class="auth-input-wrap">
+            <i class="fas fa-lock auth-input-icon"></i>
+            <input type="password" id="login-password" data-i18n-placeholder="login.password.placeholder" placeholder="••••••••" required>
+            <button type="button" class="auth-eye-btn" onclick="togglePassword(this)"><i class="fas fa-eye-slash"></i></button>
+          </div>
+        </div>
+        <!-- Sigle école -->
+        <div class="auth-field-group">
+          <label><span data-i18n="login.school_slug">Sigle de l'école</span> <small style="color:var(--texte-secondaire)" data-i18n="login.school_slug.hint">(optionnel si 1 seul compte)</small></label>
+          <div class="auth-input-wrap">
+            <i class="fas fa-building auth-input-icon"></i>
+            <input type="text" id="login-school-slug" data-i18n-placeholder="login.school_slug.placeholder" placeholder="ex: college-yiriba">
+          </div>
+        </div>
+        <!-- Remember + Forgot -->
+        <div class="auth-options-row">
+          <label class="auth-checkbox-label">
+            <input type="checkbox" class="auth-checkbox">
+            <span data-i18n="login.remember">Se souvenir de moi</span>
+          </label>
+          <a href="#" class="auth-forgot-link" onclick="showAuthTab('forgot');return false" data-i18n="login.forgot">Mot de passe oublié ?</a>
+        </div>
+        <div id="login-error" class="error-text"></div>
+        <button type="submit" class="auth-submit-btn" id="login-submit-btn">
+          <i class="fas fa-right-to-bracket"></i>
+          <span data-i18n="login.submit">Se connecter</span>
+        </button>
+      </form>
+
+      <!-- Register Form -->
+      <!-- Register School: Multi-Step Wizard -->
+      <div id="register-form" style="display:none">
+        <!-- Progress Bar -->
+        <div style="display:flex;gap:8px;margin-bottom:20px">
+          <div id="reg-step1-dot" style="flex:1;height:4px;border-radius:4px;background:var(--yiriba-vert);transition:background 0.3s"></div>
+          <div id="reg-step2-dot" style="flex:1;height:4px;border-radius:4px;background:var(--border);transition:background 0.3s"></div>
+          <div id="reg-step3-dot" style="flex:1;height:4px;border-radius:4px;background:var(--border);transition:background 0.3s"></div>
+          <div id="reg-step4-dot" style="flex:1;height:4px;border-radius:4px;background:var(--border);transition:background 0.3s"></div>
+        </div>
+        <div id="reg-step-label" style="font-size:12px;color:var(--texte-secondaire);text-align:center;margin-bottom:16px">Étape 1 sur 4 — Votre établissement</div>
+
+        <!-- Step 1: School Info -->
+        <div id="reg-step1">
+          <div class="auth-field-group">
+            <label>Nom de l'école</label>
+            <div class="auth-input-wrap">
+              <i class="fas fa-school auth-input-icon"></i>
+              <input type="text" id="reg-school-name" placeholder="Collège Yiriba Ouaga" required>
+            </div>
+          </div>
+          <div class="auth-field-group">
+            <label>Type d'établissement</label>
+            <div class="auth-input-wrap">
+              <i class="fas fa-building auth-input-icon"></i>
+              <select id="reg-school-type" style="width:100%;padding:10px 12px;border:none;background:transparent;font-size:14px;outline:none;cursor:pointer">
+                <option value="college">Collège</option>
+                <option value="primaire">Primaire</option>
+                <option value="lycee">Lycée</option>
+                <option value="maternelle">Maternelle</option>
+                <option value="complexe">Complexe scolaire</option>
+                <option value="autre">Autre</option>
+              </select>
+            </div>
+          </div>
+          <div class="auth-field-group">
+            <label>Ville / Localité</label>
+            <div class="auth-input-wrap">
+              <i class="fas fa-location-dot auth-input-icon"></i>
+              <input type="text" id="reg-school-city" placeholder="Ouagadougou">
+            </div>
+          </div>
+          <button type="button" class="auth-submit-btn" onclick="regNextStep(2)" style="margin-top:8px">
+            Continuer <i class="fas fa-arrow-right" style="margin-left:6px"></i>
+          </button>
+        </div>
+
+        <!-- Step 2: Director Info -->
+        <div id="reg-step2" style="display:none">
+          <div class="auth-form-row">
+            <div class="auth-field-group">
+              <label>Prénom du directeur</label>
+              <div class="auth-input-wrap">
+                <input type="text" id="reg-first-name" placeholder="Prénom" required>
+              </div>
+            </div>
+            <div class="auth-field-group">
+              <label>Nom du directeur</label>
+              <div class="auth-input-wrap">
+                <input type="text" id="reg-last-name" placeholder="Nom" required>
+              </div>
+            </div>
+          </div>
+          <div class="auth-field-group">
+            <label>Email du directeur</label>
+            <div class="auth-input-wrap">
+              <i class="fas fa-envelope auth-input-icon"></i>
+              <input type="text" id="reg-email" placeholder="directeur@ecole.com" required>
+            </div>
+          </div>
+          <div class="auth-field-group">
+            <label>Téléphone du directeur</label>
+            <div class="auth-input-wrap">
+              <i class="fas fa-phone auth-input-icon"></i>
+              <input type="text" id="reg-phone" placeholder="(+226) XX XX XX XX">
+            </div>
+          </div>
+          <label style="display:flex;gap:10px;align-items:flex-start;font-size:12.5px;color:var(--texte-secondaire);line-height:1.5;margin-top:10px;cursor:pointer">
+            <input type="checkbox" id="reg-cgv" required style="margin-top:2px;width:16px;height:16px;accent-color:var(--yiriba-vert)">
+            <span>Je reconnais avoir lu et accepte les <a href="#" onclick="event.preventDefault();showCgvModal()" style="color:var(--yiriba-vert);text-decoration:underline">conditions d'utilisation</a> et la <a href="#" onclick="event.preventDefault();showCgvModal()" style="color:var(--yiriba-vert);text-decoration:underline">politique de confidentialité</a> de YIRIBA.</span>
+          </label>
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <button type="button" class="auth-submit-btn" onclick="regNextStep(1)" style="background:transparent;color:var(--yiriba-vert);border:1px solid var(--border);flex:0 0 auto;padding:12px 20px">
+              <i class="fas fa-arrow-left"></i>
+            </button>
+            <button type="button" class="auth-submit-btn" onclick="regNextStep(3)" style="flex:1">
+              Choisir un forfait <i class="fas fa-arrow-right" style="margin-left:6px"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 3: Plan Selection -->
+        <div id="reg-step3" style="display:none">
+          <div style="text-align:center;margin-bottom:20px">
+            <div style="font-size:28px;margin-bottom:8px">🌳</div>
+            <h3 style="font-family:'Sora',sans-serif;font-size:17px;color:var(--yiriba-vert-profond);margin:0 0 4px">Choisissez votre forfait</h3>
+            <p style="font-size:13px;color:var(--texte-secondaire);margin:0">Sélectionnez le plan adapté à votre établissement</p>
+          </div>
+          <div id="reg-plans-container" style="display:flex;flex-direction:column;gap:12px;margin-bottom:20px">
+            <div style="text-align:center;padding:20px;color:var(--texte-secondaire)"><i class="fas fa-spinner fa-spin"></i> Chargement des forfaits...</div>
+          </div>
+          <div id="reg-captcha-container" style="display:none;justify-content:center;margin-bottom:16px" data-i18n="register.captcha.help"></div>
+          <div style="display:flex;gap:10px;margin-top:8px">
+            <button type="button" class="auth-submit-btn" onclick="regNextStep(2)" style="background:transparent;color:var(--yiriba-vert);border:1px solid var(--border);flex:0 0 auto;padding:12px 20px">
+              <i class="fas fa-arrow-left"></i>
+            </button>
+            <button type="button" class="auth-submit-btn" id="reg-plan-next" onclick="regSubmit()" style="flex:1" disabled>
+              <i class="fas fa-check"></i> Créer l'école
+            </button>
+          </div>
+        </div>
+
+        <!-- Step 4: Confirmation -->
+        <div id="reg-step4" style="display:none;text-align:center">
+          <div style="width:70px;height:70px;border-radius:50%;background:#e8f5e9;display:flex;align-items:center;justify-content:center;margin:0 auto 16px">
+            <i class="fas fa-check-circle" style="font-size:36px;color:var(--yiriba-vert)"></i>
+          </div>
+          <h3 style="font-family:'Sora',sans-serif;font-size:18px;color:var(--yiriba-vert-profond);margin-bottom:4px">Votre établissement a été créé !</h3>
+          <p style="font-size:13px;color:var(--texte-secondaire);margin-bottom:20px">Conservez précieusement votre identifiant de connexion.</p>
+          <div id="reg-sub-info" style="display:none"></div>
+          <div id="reg-yiriba-id-box">
+            <div style="background:var(--yiriba-ivoire);border-radius:12px;padding:20px;text-align:left;margin-bottom:16px">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:var(--texte-secondaire);margin-bottom:4px">Identifiant administrateur</div>
+              <div style="font-size:22px;font-weight:700;color:var(--yiriba-vert-profond);font-family:monospace;letter-spacing:1px;margin-bottom:12px" id="reg-yiriba-id">—</div>
+              <button type="button" onclick="copyYiribaId()" style="background:var(--yiriba-vert);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:6px">
+                <i class="fas fa-copy"></i> Copier l'identifiant
+              </button>
+              <div id="reg-copy-msg" style="display:none;font-size:12px;color:var(--yiriba-vert);margin-top:6px">Copié !</div>
+            </div>
+          </div>
+          <div id="reg-temp-pwd-box">
+            <div style="background:#fff3e0;border-radius:12px;padding:14px;text-align:left;margin-bottom:16px">
+              <div style="font-size:11px;text-transform:uppercase;letter-spacing:0.05em;color:#e65100;margin-bottom:4px">Mot de passe temporaire</div>
+              <div style="font-size:16px;font-weight:600;color:#bf360c;font-family:monospace" id="reg-temp-pwd">—</div>
+              <div style="margin-top:8px;display:flex;gap:8px;align-items:center">
+                <button type="button" onclick="copyTempPwd()" style="background:#e65100;color:white;border:none;border-radius:6px;padding:6px 12px;font-size:12px;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:4px">
+                  <i class="fas fa-copy"></i> Copier
+                </button>
+                <div id="reg-copy-pwd-msg" style="display:none;font-size:12px;color:#e65100">Copié !</div>
+              </div>
+              <div style="font-size:12px;color:#e65100;margin-top:6px"><i class="fas fa-exclamation-triangle"></i> Ce mot de passe sera demandé lors de votre première connexion. Vous devrez le modifier.</div>
+            </div>
+          </div>
+          <div id="reg-confirm-email-box" style="display:none;background:var(--yiriba-ivoire);border-radius:12px;padding:16px;margin-bottom:16px">
+            <div style="font-size:13px;color:var(--texte-secondaire);line-height:1.6">
+              <i class="fas fa-envelope-circle-check" style="color:var(--yiriba-vert);margin-right:6px"></i>
+              Un email de confirmation a été envoyé au directeur. Cliquez sur le lien qu'il contient pour activer le compte avant la première connexion.
+            </div>
+            <button type="button" id="reg-confirm-url-btn" style="display:none;margin-top:10px;background:var(--yiriba-vert);color:white;border:none;border-radius:8px;padding:8px 16px;font-size:13px;font-weight:600;cursor:pointer">
+              <i class="fas fa-envelope-open-text"></i> Ouvrir le lien de confirmation (développement)
+            </button>
+          </div>
+          <button type="button" class="auth-submit-btn" onclick="regGoToLogin()">
+            <i class="fas fa-arrow-right"></i> Continuer vers la connexion
+          </button>
+        </div>
+
+        <div id="register-error" class="error-text" style="margin-top:10px"></div>
+      </div>
+
+      <!-- Forgot Password Form -->
+      <form id="forgot-form" style="display:none" onsubmit="handleForgotPassword(event)">
+        <h3 style="text-align:center;margin:0 0 8px;font-size:16px;color:var(--yiriba-vert-profond)" data-i18n="reset.title">Récupérer votre mot de passe</h3>
+        <p style="text-align:center;font-size:13px;color:var(--yiriba-text-secondaire);margin:0 0 16px" data-i18n="reset.subtitle">Entrez votre adresse email pour recevoir un lien de réinitialisation.</p>
+        <div class="auth-field-group">
+          <label data-i18n="reset.email">Adresse email</label>
+          <div class="auth-input-wrap">
+            <i class="fas fa-envelope auth-input-icon"></i>
+            <input type="email" id="forgot-email" data-i18n-placeholder="reset.email.placeholder" placeholder="votre@email.com" required>
+          </div>
+        </div>
+        <div id="forgot-error" class="error-text"></div>
+        <div id="forgot-success" class="success-text" style="display:none;text-align:center;padding:16px;background:#f0fdf4;border-radius:8px;margin-bottom:12px">
+          <i class="fas fa-check-circle" style="color:#16a34a;font-size:24px;margin-bottom:8px"></i>
+          <p style="margin:0;font-weight:600" data-i18n="reset.success.title">Email envoyé !</p>
+          <p style="margin:4px 0 0;font-size:13px;color:var(--yiriba-text-secondaire)" data-i18n="reset.success.message">Si un compte est associé à cette adresse, vous recevrez un lien de réinitialisation.</p>
+        </div>
+        <button type="submit" class="auth-submit-btn" id="forgot-submit-btn">
+          <i class="fas fa-paper-plane"></i>
+          <span data-i18n="reset.submit">Envoyer le lien</span>
+        </button>
+        <p style="text-align:center;margin-top:12px"><a href="#" onclick="showAuthTab('login');return false" style="color:var(--yiriba-vert-profond);font-size:13px;font-weight:500" data-i18n="reset.back">Retour à la connexion</a></p>
+      </form>
+
+      <!-- Reset Password Form -->
+      <form id="reset-form" style="display:none" onsubmit="handleResetPassword(event)">
+        <h3 style="text-align:center;margin:0 0 8px;font-size:16px;color:var(--yiriba-vert-profond)" data-i18n="reset.new_password.title">Nouveau mot de passe</h3>
+        <div class="auth-field-group">
+          <label data-i18n="reset.new_password.label">Nouveau mot de passe</label>
+          <div class="auth-input-wrap">
+            <i class="fas fa-lock auth-input-icon"></i>
+            <input type="password" id="reset-password" data-i18n-placeholder="reset.new_password.placeholder" placeholder="Min. 8 caractères" required minlength="8">
+          </div>
+        </div>
+        <div class="auth-field-group">
+          <label data-i18n="reset.confirm_password.label">Confirmer le mot de passe</label>
+          <div class="auth-input-wrap">
+            <i class="fas fa-lock auth-input-icon"></i>
+            <input type="password" id="reset-password-confirm" data-i18n-placeholder="reset.confirm_password.placeholder" placeholder="Répétez le mot de passe" required minlength="8">
+          </div>
+        </div>
+        <div id="reset-error" class="error-text"></div>
+        <div id="reset-success" class="success-text" style="display:none;text-align:center;padding:16px;background:#f0fdf4;border-radius:8px;margin-bottom:12px">
+          <i class="fas fa-check-circle" style="color:#16a34a;font-size:24px;margin-bottom:8px"></i>
+          <p style="margin:0;font-weight:600" data-i18n="reset.confirmed.title">Mot de passe modifié !</p>
+          <p style="margin:4px 0 0;font-size:13px;color:var(--yiriba-text-secondaire)" data-i18n="reset.confirmed.message">Vous pouvez maintenant vous connecter avec votre nouveau mot de passe.</p>
+        </div>
+        <button type="submit" class="auth-submit-btn" id="reset-submit-btn">
+          <i class="fas fa-key"></i>
+          <span data-i18n="reset.confirm_submit">Réinitialiser</span>
+        </button>
+        <p style="text-align:center;margin-top:12px"><a href="#" onclick="showAuthTab('login');return false" style="color:var(--yiriba-vert-profond);font-size:13px;font-weight:500" data-i18n="reset.back">Retour à la connexion</a></p>
+      </form>
+
+      <!-- Separator -->
+      <div class="auth-separator">
+        <span data-i18n="auth.separator">ou continuer avec</span>
+      </div>
+
+      <!-- Social login -->
+      <div class="auth-social-row">
+        <button type="button" class="auth-social-btn auth-social-google" onclick="loginWithGoogle()">
+          <svg width="18" height="18" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92a5.06 5.06 0 0 1-2.2 3.32v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.1z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+          <span data-i18n="auth.google">Google</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- Security badge -->
+    <div class="auth-security-badge">
+      <i class="fas fa-shield-halved" style="color:var(--yiriba-vert-feuille)"></i>
+      <span data-i18n="auth.security">Plateforme sécurisée et certifiée</span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══ APP ═══ -->
+<div id="app-screen" class="app" style="display:none">
+
+  <!-- SIDEBAR -->
+  <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleSidebar()"></div>
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-inner">
+      <div style="padding:0 10px 20px">
+        <div style="background:white;border-radius:12px;padding:12px;display:flex;justify-content:center;align-items:center">
+          <img src="/logo/logo.jpg" alt="Yiriba" style="width:100%;max-width:220px;height:auto;object-fit:contain">
+        </div>
+      </div>
+      <div class="school-context">Vos Racines Digitalisées</div>
+      <nav class="nav" id="nav-main">
+        <a class="nav-link active" onclick="loadPage('dashboard')"><span class="nav-icon"><i class="fas fa-house"></i></span><span>Tableau de bord</span></a>
+        <a class="nav-link" onclick="loadPage('students')"><span class="nav-icon"><i class="fas fa-user-graduate"></i></span><span>Élèves</span></a>
+        <a class="nav-link" onclick="loadPage('classes')"><span class="nav-icon"><i class="fas fa-chalkboard"></i></span><span>Classes</span></a>
+        <a class="nav-link" onclick="loadPage('teachers')"><span class="nav-icon"><i class="fas fa-person-chalkboard"></i></span><span>Enseignants</span></a>
+        <a class="nav-link" onclick="loadPage('grades')"><span class="nav-icon"><i class="fas fa-pen-fancy"></i></span><span>Notes</span></a>
+        <a class="nav-link" onclick="loadPage('attendance')"><span class="nav-icon"><i class="fas fa-clipboard-check"></i></span><span>Présences</span></a>
+        <a class="nav-link" onclick="loadPage('bulletins')"><span class="nav-icon"><i class="fas fa-file-lines"></i></span><span>Bulletins</span></a>
+        <a class="nav-link" onclick="loadPage('payments')"><span class="nav-icon"><i class="fas fa-money-bill-wave"></i></span><span>Paiements</span></a>
+        <a class="nav-link" onclick="loadPage('fee-structure')"><span class="nav-icon"><i class="fas fa-file-invoice-dollar"></i></span><span>Structure des frais</span></a>
+        <a class="nav-link" onclick="loadPage('parents')"><span class="nav-icon"><i class="fas fa-people-roof"></i></span><span>Parents / Tuteurs</span></a>
+      </nav>
+      <div class="nav-separator"></div>
+      <nav class="nav" id="nav-admin">
+        <div class="nav-link" style="font-size:11px;letter-spacing:0.8px;text-transform:uppercase;opacity:0.5;cursor:default;min-height:28px">Administration</div>
+        <a class="nav-link" onclick="loadPage('users')"><span class="nav-icon"><i class="fas fa-users-gear"></i></span><span>Utilisateurs</span></a>
+        <a class="nav-link" onclick="loadPage('roles')"><span class="nav-icon"><i class="fas fa-shield-halved"></i></span><span>Rôles & Permissions</span></a>
+        <a class="nav-link" onclick="loadPage('subscription')"><span class="nav-icon"><i class="fas fa-crown"></i></span><span>Abonnement</span></a>
+        <a class="nav-link" onclick="loadPage('audit')"><span class="nav-icon"><i class="fas fa-clock-rotate-left"></i></span><span>Audit</span></a>
+        <a class="nav-link" onclick="loadPage('settings')"><span class="nav-icon"><i class="fas fa-gear"></i></span><span>Paramètres</span></a>
+      </nav>
+      <div class="sidebar-bottom">
+        <button class="logout-btn" onclick="logout()" title="Se déconnecter de Yiriba">
+          <i class="fas fa-arrow-right-from-bracket"></i><span>Se déconnecter</span>
+        </button>
+        <div id="offline-counter" style="display:none;align-items:center;gap:6px;margin-bottom:8px;padding:6px 10px;border-radius:8px;background:rgba(242,183,5,0.2);font-size:12px;color:var(--yiriba-jaune);font-weight:600">
+          <i class="fas fa-cloud-arrow-up"></i>
+          <span>0</span> en attente
+        </div>
+        <div style="margin-bottom:4px"><i class="fas fa-circle" style="font-size:7px;color:var(--yiriba-vert-feuille);margin-right:4px"></i> <strong style="color:rgba(255,255,255,0.85)">École active</strong></div>
+        <div id="sidebar-school">Collège Yiriba Ouaga</div>
+        <div>Année 2025–2026</div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- MAIN -->
+  <main class="main">
+
+    <!-- TOPBAR -->
+    <header class="topbar">
+      <button class="topbar-btn menu-toggle" title="Menu" onclick="toggleSidebar()" style="display:none;margin-right:6px;">
+        <i class="fas fa-bars"></i>
+      </button>
+      <div>
+        <div class="topbar-title">Tableau de bord</div>
+        <div class="topbar-subtitle">Vue d'ensemble de votre école</div>
+      </div>
+      <div class="topbar-actions">
+        <div class="search-wrap">
+          <i class="fas fa-search search-icon"></i>
+          <input class="search" type="search" placeholder="Rechercher..." title="Rechercher un élève, une classe, un paiement">
+        </div>
+        <button class="topbar-btn" title="Notifications" onclick="loadPage('notifications')" style="position:relative">
+          <i class="fas fa-bell"></i>
+          <span class="notif-dot" id="notif-badge" style="display:none;position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:var(--yiriba-rouge);border:2px solid white"></span>
+        </button>
+        <button class="topbar-btn" title="Messages">
+          <i class="fas fa-envelope"></i>
+        </button>
+        <div class="profile" id="profile-menu" style="cursor:pointer" onclick="toggleProfileMenu(event)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleProfileMenu(event)}" tabindex="0" role="button" aria-haspopup="true" aria-expanded="false">
+          <div class="avatar" id="user-avatar">D</div>
+          <div>
+            <div class="profile-name" id="user-name-display">Directeur</div>
+            <div class="profile-status">En ligne</div>
+          </div>
+          <div class="profile-dropdown" id="profile-dropdown" onclick="event.stopPropagation()">
+            <button class="profile-dropdown-item" onclick="loadPage('settings');closeProfileMenu()"><i class="fas fa-gear"></i><span>Paramètres</span></button>
+            <button class="profile-dropdown-item profile-dropdown-danger" onclick="logout()"><i class="fas fa-arrow-right-from-bracket"></i><span>Se déconnecter</span></button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- CONTENT -->
+    <section class="content" id="main-content"></section>
+
+    <!-- FOOTER -->
+    <footer class="dash-footer">
+      <span>© 2025 Yiriba. Tous droits réservés.</span>
+      <span>Version 1.0.0</span>
+    </footer>
+  </main>
+</div>
+
+<!-- Modal -->
+<div id="modal-overlay" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal()">
+  <div class="modal">
+    <div class="modal-header"><h3 id="modal-title"></h3><button class="modal-close" onclick="closeModal()">&times;</button></div>
+    <div id="modal-body" class="modal-body"></div>
+  </div>
+</div>
+<div id="toast-container" class="toast-container"></div>
+<script src="/static/i18n.js?v=71"></script>
+<script src="/static/offline-sync.js?v=72"></script>  <script src="/static/admin_nav.js?v=1"></script>
+  <script src="/static/app.js?v=107"></script>
+<script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
+<script src="/static/teacher_portal.js?v=70"></script>
+<script src="/static/parent_portal.js?v=78"></script>
+<script src="/static/student_portal.js?v=72"></script>
+</body>
+</html>

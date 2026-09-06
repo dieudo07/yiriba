@@ -1,0 +1,436 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<style>
+  @font-face {
+    font-family: 'UniFR';
+    src: url('file:///{{ _tpl_dir }}/fonts/UniFR.ttf');
+  }
+  * { margin: 0; padding: 0; }
+  body {
+    font-family: 'UniFR', Helvetica, Arial, sans-serif;
+    font-size: 9pt;
+    color: #222;
+    line-height: 1.4;
+  }
+
+  /* ── Header ─────────────────────────────────────────── */
+  .header-table {
+    width: 100%;
+    border-collapse: collapse;
+    border-bottom: 3px solid #0E5C3F;
+    padding-bottom: 6px;
+    margin-bottom: 8px;
+  }
+  .header-table td {
+    vertical-align: middle;
+    padding: 4px;
+  }
+  .logo-cell {
+    width: 60px;
+    text-align: center;
+  }
+  .logo-placeholder {
+    width: 45px;
+    height: 45px;
+    background: #0E5C3F;
+    border-radius: 6px;
+    color: white;
+    font-weight: bold;
+    font-size: 16px;
+    line-height: 45px;
+    display: inline-block;
+  }
+  .school-name {
+    font-size: 14pt;
+    font-weight: bold;
+    color: #0E5C3F;
+  }
+  .school-details {
+    font-size: 8pt;
+    color: #666;
+  }
+  .school-motto {
+    font-size: 7.5pt;
+    font-style: italic;
+    color: #888;
+  }
+
+  /* ── Title ──────────────────────────────────────────── */
+  .title-bar {
+    text-align: center;
+    margin: 8px 0;
+    padding: 6px;
+    background: #0E5C3F;
+    color: white;
+  }
+  .title-bar h1 {
+    font-size: 12pt;
+    margin: 0;
+  }
+  .title-bar .subtitle {
+    font-size: 9pt;
+    opacity: 0.9;
+  }
+
+  /* ── Student Info ───────────────────────────────────── */
+  .student-info-table {
+    width: 100%;
+    border: 1px solid #ddd;
+    margin: 8px 0;
+    font-size: 8.5pt;
+    background: #f8f9f8;
+  }
+  .student-info-table td {
+    padding: 4px 8px;
+    vertical-align: top;
+  }
+  .label { color: #666; font-weight: 600; }
+
+  /* ── Grades Table ───────────────────────────────────── */
+  .grades-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+    font-size: 8pt;
+  }
+  .grades-table th {
+    background: #0E5C3F;
+    color: white;
+    padding: 4px 3px;
+    text-align: center;
+    font-weight: 600;
+    font-size: 7.5pt;
+    border: 1px solid #0a4a33;
+  }
+  .grades-table th:first-child {
+    text-align: left;
+    padding-left: 6px;
+  }
+  .grades-table td {
+    padding: 3px;
+    border: 1px solid #ddd;
+    text-align: center;
+    font-size: 8pt;
+  }
+  .grades-table td:first-child {
+    text-align: left;
+    padding-left: 6px;
+    font-weight: 500;
+  }
+  .grades-table tr:nth-child(even) td {
+    background: #f5f8f5;
+  }
+  .grades-table tr.total-row td {
+    font-weight: bold;
+    background: #e8f0e8;
+    border-top: 2px solid #0E5C3F;
+  }
+  .absent { color: #c0392b; font-style: italic; }
+
+  /* ── Summary ────────────────────────────────────────── */
+  .summary-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 8px 0;
+  }
+  .summary-table td {
+    width: 25%;
+    text-align: center;
+    border: 1px solid #ddd;
+    padding: 6px 4px;
+    vertical-align: middle;
+  }
+  .summary-table .value {
+    font-size: 14pt;
+    font-weight: bold;
+    color: #0E5C3F;
+  }
+  .summary-table .sc-label {
+    font-size: 7pt;
+    color: #666;
+    text-transform: uppercase;
+  }
+  .summary-table .highlight td {
+    background: #0E5C3F;
+    color: white;
+    border-color: #0E5C3F;
+  }
+  .summary-table .highlight .value { color: white; }
+  .summary-table .highlight .sc-label { color: rgba(255,255,255,0.8); }
+
+  /* ── Mention ────────────────────────────────────────── */
+  .mention {
+    text-align: center;
+    margin: 8px 0;
+    padding: 5px;
+    border: 2px solid #0E5C3F;
+    background: #f0f8f0;
+  }
+  .mention .text {
+    font-size: 11pt;
+    font-weight: bold;
+    color: #0E5C3F;
+  }
+
+  /* ── Decision ───────────────────────────────────────── */
+  .decision {
+    text-align: center;
+    margin: 8px 0;
+    padding: 6px;
+    font-size: 12pt;
+    font-weight: bold;
+    border: 2px solid #2e7d32;
+    background: #e8f5e9;
+    color: #2e7d32;
+  }
+  .decision.redouble {
+    border-color: #c62828;
+    background: #fce4ec;
+    color: #c62828;
+  }
+
+  /* ── Observations ───────────────────────────────────── */
+  .observations {
+    margin: 8px 0;
+    padding: 6px;
+    border: 1px solid #ddd;
+    background: #fafafa;
+  }
+  .obs-label {
+    font-weight: bold;
+    font-size: 8.5pt;
+    margin-bottom: 3px;
+  }
+  .obs-content {
+    min-height: 25px;
+    font-size: 8.5pt;
+    color: #555;
+  }
+
+  /* ── Signatures ─────────────────────────────────────── */
+  .sig-table {
+    width: 100%;
+    margin-top: 15px;
+  }
+  .sig-table td {
+    width: 45%;
+    text-align: center;
+    padding-top: 35px;
+  }
+  .sig-table .sig-line {
+    border-top: 1px solid #333;
+    padding-top: 4px;
+    font-size: 8pt;
+    font-weight: 600;
+  }
+  .sig-table .sig-sub {
+    font-size: 7pt;
+    color: #888;
+  }
+
+  /* ── Footer ─────────────────────────────────────────── */
+  .footer {
+    margin-top: 8px;
+    padding-top: 4px;
+    border-top: 1px solid #ddd;
+    text-align: center;
+    font-size: 7pt;
+    color: #aaa;
+  }
+
+  /* ── QR Code ────────────────────────────────────────── */
+  .qr-table {
+    position: absolute;
+    bottom: 15mm;
+    right: 10mm;
+    text-align: center;
+  }
+  .qr-table img {
+    width: 40px;
+    height: 40px;
+  }
+  .qr-text {
+    font-size: 6pt;
+    color: #aaa;
+  }
+</style>
+</head>
+<body>
+
+  <!-- HEADER -->
+  <table class="header-table">
+    <tr>
+      <td class="logo-cell">
+        {% if school_logo_url %}
+          <img src="{{ school_logo_path }}" width="45" height="45" alt="Logo">
+        {% else %}
+          <div class="logo-placeholder">{{ school_initial }}</div>
+        {% endif %}
+      </td>
+      <td>
+        <div class="school-name">{{ school_name }}</div>
+        <div class="school-details">
+          {% if school_address %}{{ school_address }}{% endif %}
+          {% if school_city %} — {{ school_city }}, {{ school_country }}{% endif %}
+          {% if school_phone %} | Tél: {{ school_phone }}{% endif %}
+        </div>
+        {% if school_motto %}
+          <div class="school-motto">« {{ school_motto }} »</div>
+        {% endif %}
+      </td>
+    </tr>
+  </table>
+
+  <!-- TITLE -->
+  <div class="title-bar">
+    <h1>BULLETIN SCOLAIRE — {{ period_name }}</h1>
+    <div class="subtitle">Année scolaire {{ academic_year }} | Classe: {{ class_name }} | Effectif: {{ effectif }}</div>
+  </div>
+
+  <!-- STUDENT INFO -->
+  <table class="student-info-table">
+    <tr>
+      <td style="width:55%">
+        <span class="label">Nom :</span> {{ student_last_name }}<br>
+        <span class="label">Prénom(s) :</span> {{ student_first_name }}<br>
+        <span class="label">Matricule :</span> {{ matricule }}
+      </td>
+      <td style="text-align:right">
+        <span class="label">Date de naissance :</span> {{ birth_date | default('—') }}<br>
+        <span class="label">Redoublant(e) :</span> {{ 'Oui' if is_repeater else 'Non' }}<br>
+        <span class="label">Période :</span> {{ period_name }}
+      </td>
+    </tr>
+  </table>
+
+  <!-- GRADES TABLE -->
+  <table class="grades-table">
+    <thead>
+      <tr>
+        <th style="width:20%">Matière</th>
+        <th style="width:7%">Coeff.</th>
+        <th style="width:9%">Devoir 1</th>
+        <th style="width:9%">Devoir 2</th>
+        <th style="width:9%">Compo.</th>
+        <th style="width:9%">Moy.</th>
+        <th style="width:9%">Moy. Cl.</th>
+        <th style="width:7%">Rang</th>
+        <th style="width:20%">Appréciation</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for subj in subjects %}
+      <tr>
+        <td>{{ subj.name }}</td>
+        <td>{{ subj.coefficient }}</td>
+        <td class="{{ 'absent' if subj.d1 is none }}">{{ '%.1f' | format(subj.d1) if subj.d1 is not none else '—' }}</td>
+        <td class="{{ 'absent' if subj.d2 is none }}">{{ '%.1f' | format(subj.d2) if subj.d2 is not none else '—' }}</td>
+        <td class="{{ 'absent' if subj.comp is none }}">{{ '%.1f' | format(subj.comp) if subj.comp is not none else '—' }}</td>
+        <td><strong>{{ '%.2f' | format(subj.average) if subj.average is not none else '—' }}</strong></td>
+        <td>{{ '%.2f' | format(subj.class_average) if subj.class_average is not none else '—' }}</td>
+        <td>{{ subj.rank if subj.rank else '—' }}</td>
+        <td>{{ subj.appreciation }}</td>
+      </tr>
+      {% endfor %}
+      <tr class="total-row">
+        <td><strong>TOTAL</strong></td>
+        <td><strong>{{ total_coeff }}</strong></td>
+        <td colspan="4"></td>
+        <td><strong>{% if overall_average is not none %}{{ '%.2f' | format(overall_average) }}{% else %}—{% endif %}</strong></td>
+        <td></td>
+        <td></td>
+      </tr>
+    </tbody>
+  </table>
+
+  <!-- SUMMARY -->
+  {% if overall_average is none %}
+  <div style="text-align:center; margin:8px 0; padding:8px; border:2px dashed #f57f17; background:#fff8e1; font-size:10pt; color:#b28900; font-weight:bold;">
+    Bulletin incomplet — notes non saisies pour cette période
+  </div>
+  {% endif %}
+  <table class="summary-table">
+    <tr class="highlight">
+      <td>
+        <div class="value">{% if overall_average is none %}—{% else %}{{ '%.2f' | format(display_average) }}{% endif %}</div>
+        <div class="sc-label">Moyenne Générale /20</div>
+      </td>
+      <td>
+        <div class="value">{% if rank %}{{ rank }}/{{ effectif }}{% else %}— / {{ effectif }}{% endif %}</div>
+        <div class="sc-label">Rang dans la classe</div>
+      </td>
+      <td>
+        <div class="value">{% if class_average %}{{ '%.2f' | format(class_average) }}{% else %}—{% endif %}</div>
+        <div class="sc-label">Moyenne de la classe</div>
+      </td>
+      <td>
+        <div class="value">{% if best_average %}{{ '%.2f' | format(best_average) }}{% else %}—{% endif %}</div>
+        <div class="sc-label">Meilleure moyenne</div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- DISCIPLINE -->
+  {% if discipline_mode == 'general_average' and total_deductions > 0 and overall_average is not none and display_average is not none %}
+  <div style="text-align:center; margin:6px 0; padding:5px; border:1px solid #e0e0e0; background:#fff8e1; font-size:9pt;">
+    <strong style="color:#f57f17;">⚠ Discipline :</strong> Moyenne académique {{ '%.2f' | format(overall_average) }} — {{ total_deductions }} pts déduits → Moyenne finale {{ '%.2f' | format(display_average) }}
+  </div>
+  {% endif %}
+
+  {% if discipline_mode == 'conduct' and conduct_score is not none %}
+  <div style="text-align:center; margin:6px 0; padding:5px; border:1px solid #0E5C3F; background:#f0f8f8; font-size:9pt;">
+    <strong style="color:#0E5C3F;">Conduite : {{ conduct_score }}/20</strong> — {{ conduct_appreciation }}
+    {% if total_deductions > 0 %}<br/><span style="font-size:8pt; color:#888;">({{ total_deductions }} pts déduits sur la période)</span>{% endif %}
+  </div>
+  {% endif %}
+
+  <!-- MENTION -->
+  {% if overall_average is not none %}
+  <div class="mention">
+    <div class="text">Mention : {{ mention }}</div>
+  </div>
+  {% endif %}
+
+  <!-- DECISION -->
+  {% if decision %}
+  <div class="decision {{ 'redouble' if decision == 'Redouble' else '' }}">
+    Décision du Conseil : {{ decision }}
+  </div>
+  {% endif %}
+
+  <!-- OBSERVATIONS -->
+  <div class="observations">
+    <div class="obs-label">Observations / Appréciation du Conseil de Classe :</div>
+    <div class="obs-content">{{ observations if observations else '—' }}</div>
+  </div>
+
+  <!-- SIGNATURES -->
+  <table class="sig-table">
+    <tr>
+      <td>
+        <div class="sig-line">Le Directeur</div>
+        <div class="sig-sub">{{ school_name }}</div>
+      </td>
+      <td style="width:10%"></td>
+      <td>
+        <div class="sig-line">Le Professeur Principal</div>
+        <div class="sig-sub">{{ class_name }}</div>
+      </td>
+    </tr>
+  </table>
+
+  <!-- FOOTER -->
+  <div class="footer">
+    Document généré par YIRIBA — {{ generated_at }} | Vérification : {{ verification_url }}
+  </div>
+
+  <!-- QR CODE -->
+  <div class="qr-table">
+    <img src="{{ qr_path }}" alt="QR" width="45" height="45">
+    <div class="qr-text">Scannez pour vérifier</div>
+  </div>
+
+</body>
+</html>
