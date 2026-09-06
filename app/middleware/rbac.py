@@ -46,12 +46,7 @@ async def get_current_user(
 
     payload = decode_token(token)
     if payload is None:
-        import logging
-        from app.core.config import get_settings as _gs
-        logging.getLogger("yiriba").warning(
-            "DEBUG AUTH 401: full_token=%s secret_snapshot=%s",
-            token, _gs().JWT_SECRET_KEY[:8],
-        )
+        # SÉCURITÉ : ne JAMAIS logger le token ni la clé secrète.
         raise HTTPException(status_code=401, detail="Token invalide ou expiré")
 
     if payload.get("type") != "access":
