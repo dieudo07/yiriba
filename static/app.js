@@ -520,24 +520,66 @@ document.addEventListener('click', (ev) => {
   const wrap = document.getElementById('profile-menu');
   if (wrap && !wrap.contains(ev.target)) closeProfileMenu();
 });
-document.addEventListener('keydown', (ev) => { if (ev.key === 'Escape') closeProfileMenu(); });
+document.addEventListener('keydown', (ev) => {
+  if (ev.key !== 'Escape') return;
+  closeProfileMenu();
+  // Fermer aussi le tiroir sidebar mobile s'il est ouvert
+  const sb = document.getElementById('sidebar');
+  const ov = document.getElementById('sidebar-overlay');
+  if (sb && sb.classList.contains('open')) {
+    sb.classList.remove('open');
+    if (ov) ov.classList.remove('visible');
+    document.body.style.overflow = '';
+  }
+});
 
 function toggleSidebar() {
   const sidebar = document.getElementById('sidebar');
   const overlay = document.getElementById('sidebar-overlay');
   if (!sidebar) return;
   const isOpen = sidebar.classList.toggle('open');
-  if (overlay) overlay.classList.toggle('show', isOpen);
+  if (overlay) overlay.classList.toggle('visible', isOpen);
+  document.body.style.overflow = isOpen ? 'hidden' : '';
 }
 
-// Ferme le menu mobile quand un lien de navigation est cliqué
-document.addEventListener('click', function (e) {
-  if (window.innerWidth <= 560 && e.target.closest('.nav-link')) {
-    const sidebar = document.getElementById('sidebar');
-    const overlay = document.getElementById('sidebar-overlay');
-    if (sidebar) sidebar.classList.remove('open');
-    if (overlay) overlay.classList.remove('show');
+// Close sidebar on overlay click
+document.addEventListener('click', (e) => {
+  const sidebar = document.getElementById('sidebar');
+  const overlay = document.getElementById('sidebar-overlay');
+  if (sidebar && overlay && sidebar.classList.contains('open') &&
+      e.target === overlay) {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('visible');
+    document.body.style.overflow = '';
   }
+});
+
+// Handle window resize for mobile UI
+let _resizeTimer;
+window.addEventListener('resize', () => {
+  clearTimeout(_resizeTimer);
+  _resizeTimer = setTimeout(() => {
+    if (window.innerWidth > 560) {
+      // Desktop: ensure sidebar is visible, FAB hidden
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      const fab = document.getElementById('fab-container');
+      if (sidebar) { sidebar.classList.remove('open'); sidebar.style.overflow = ''; }
+      if (overlay) overlay.classList.remove('visible');
+      document.body.style.overflow = '';
+      if (fab) { fab.hidden = true; fab.classList.remove('open'); }
+    } else {
+      // Mobile: ensure sidebar starts closed
+      const sidebar = document.getElementById('sidebar');
+      const overlay = document.getElementById('sidebar-overlay');
+      if (sidebar) { sidebar.classList.remove('open'); }
+      if (overlay) overlay.classList.remove('visible');
+    }
+    // Update FAB visibility on resize
+    if (typeof updateFab === 'function' && typeof window._currentPage !== 'undefined') {
+      updateFab(window._currentPage);
+    }
+  }, 150);
 });
 
 /* -- Change Password Modal (first login) ------------------------- */
@@ -761,8 +803,13 @@ function setActiveNav(id) {
     link.setAttribute('aria-current', 'page');
     if (typeof ensureNavGroupOpenForPage === 'function') ensureNavGroupOpenForPage(id);
   }
+  // Update bottom nav (mobile)
+  document.querySelectorAll('.bottom-nav-item').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.page === id);
+  });
 }
 function loadPage(page) {
+  window._currentPage = page;  // Track current page for resize handler
   setActiveNav(page);
   updateFab(page);
   // Portal-specific pages
@@ -7472,10 +7519,10 @@ function updateFab(page) {
     return;
   }
   menu.innerHTML = actions.map((a, i) =>
-    `<button class="fab-action" role="menuitem" data-fab-idx="${i}">` +
-    `<span>${_fabEscape(a.label)}</span><i class="fas ${a.icon}" aria-hidden="true"></i></button>`
+    `<button class="fab-item" role="menuitem" data-fab-idx="${i}">` +
+    `<i class="fas ${a.icon}" aria-hidden="true"></i><span>${_fabEscape(a.label)}</span></button>`
   ).join('');
-  menu.querySelectorAll('.fab-action').forEach(btn => {
+  menu.querySelectorAll('.fab-item').forEach(btn => {
     btn.addEventListener('click', () => {
       const act = actions[parseInt(btn.dataset.fabIdx, 10)];
       closeFab();

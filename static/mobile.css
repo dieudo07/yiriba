@@ -1,0 +1,566 @@
+/* =========================================================
+   YIRIBA — MOBILE-FIRST ENHANCEMENTS
+   Include AFTER style.css in index.html
+   ========================================================= */
+
+/* ── Viewport & Touch ──────────────────────────────────── */
+@media (hover: none) and (pointer: coarse) {
+  /* Disable hover effects on touch devices */
+  .nav-link:hover,
+  .topbar-btn:hover,
+  .action-button:hover,
+  .table-actions button:hover,
+  .pagination-btns button:hover,
+  .btn-add:hover,
+  .btn-secondary:hover,
+  .yiriba-table tr:hover td,
+  .auth-tab:hover,
+  .auth-submit-btn:hover,
+  .auth-social-btn:hover,
+  .yiriba-empty .btn-action:hover {
+    transform: none;
+    background: inherit;
+    border-color: inherit;
+    color: inherit;
+  }
+  .indicator-card:hover,
+  .yiriba-table tr:hover td {
+    background: inherit;
+  }
+}
+
+/* ── Fluid Typography ──────────────────────────────────── */
+:root {
+  --fs-base: clamp(14px, 0.9rem + 0.2vw, 16px);
+  --fs-sm: clamp(12px, 0.75rem + 0.15vw, 13px);
+  --fs-lg: clamp(16px, 1rem + 0.3vw, 18px);
+  --fs-xl: clamp(20px, 1.3rem + 0.5vw, 28px);
+  --fs-2xl: clamp(28px, 1.8rem + 0.8vw, 40px);
+  --spacing-xs: clamp(4px, 0.3rem + 0.1vw, 6px);
+  --spacing-sm: clamp(8px, 0.5rem + 0.15vw, 10px);
+  --spacing-md: clamp(12px, 0.75rem + 0.2vw, 16px);
+  --spacing-lg: clamp(16px, 1rem + 0.25vw, 24px);
+  --spacing-xl: clamp(24px, 1.5rem + 0.4vw, 36px);
+}
+
+/* ── Touch Targets ─────────────────────────────────────── */
+@media (max-width: 640px) {
+  button,
+  .btn-add,
+  .btn-secondary,
+  .auth-submit-btn,
+  .auth-social-btn,
+  .topbar-btn,
+  .table-actions button,
+  .pagination-btns button,
+  .nav-link,
+  .action-button,
+  .modal-close,
+  .fab-btn,
+  .auth-tab,
+  .filter-select,
+  .auth-input-wrap input,
+  .filter-search,
+  .filter-select,
+  .search {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  /* Larger inputs for fat fingers */
+  .auth-input-wrap input,
+  .filter-search,
+  .filter-select,
+  .search,
+  .auth-input-wrap select {
+    padding: 14px 16px 14px 46px;
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+  
+  .auth-input-icon { left: 16px; font-size: 16px; }
+  .auth-eye-btn { right: 14px; font-size: 16px; padding: 6px; }
+  .filter-search { padding-left: 40px; }
+  .filter-search-wrap i { left: 14px; font-size: 14px; }
+}
+
+/* ── Bottom Navigation (Mobile) ────────────────────────── */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  z-index: 200;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.08);
+  backdrop-filter: blur(12px);
+  background: rgba(255,255,255,0.92);
+  display: none;
+}
+
+.bottom-nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  color: var(--texte-secondaire);
+  font-size: 10px;
+  font-weight: 500;
+  min-height: 44px;
+  min-width: 44px;
+  padding: 4px 2px;
+  border-radius: 8px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.bottom-nav-item i { font-size: 20px; }
+.bottom-nav-item.active { color: var(--yiriba-vert); }
+.bottom-nav-item.active i { color: var(--yiriba-vert); }
+.bottom-nav-item:hover { background: var(--surface-soft); }
+
+@media (max-width: 640px) {
+  .bottom-nav { display: flex; }
+  .main { padding-bottom: 72px; }
+  .content { padding: var(--spacing-md); }
+  .dash-footer { display: none; }
+}
+
+/* ── FAB (Floating Action Button) Mobile ───────────────── */
+.fab-container {
+  position: fixed;
+  bottom: 80px;
+  right: 16px;
+  z-index: 190;
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .fab-container { display: block; }
+}
+
+.fab-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--yiriba-vert);
+  color: white;
+  border: none;
+  box-shadow: 0 6px 20px rgba(14,92,63,0.3);
+  font-size: 22px;
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: all 0.2s;
+  z-index: 191;
+}
+
+.fab-btn:hover { transform: scale(1.05); box-shadow: 0 8px 24px rgba(14,92,63,0.4); }
+.fab-btn:focus-visible { outline: 3px solid var(--yiriba-vert); outline-offset: 3px; }
+
+.fab-menu {
+  position: absolute;
+  bottom: 70px;
+  right: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  opacity: 0;
+  visibility: hidden;
+  transform: translateY(20px) scale(0.9);
+  transition: all 0.25s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.fab-container.open .fab-menu {
+  opacity: 1;
+  visibility: visible;
+  transform: translateY(0) scale(1);
+}
+
+.fab-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+  min-width: 180px;
+  animation: fabSlideIn 0.2s ease-out backwards;
+}
+
+.fab-container.open .fab-item:nth-child(1) { animation-delay: 0.05s; }
+.fab-container.open .fab-item:nth-child(2) { animation-delay: 0.1s; }
+.fab-container.open .fab-item:nth-child(3) { animation-delay: 0.15s; }
+.fab-container.open .fab-item:nth-child(4) { animation-delay: 0.2s; }
+
+@keyframes fabSlideIn {
+  from { opacity: 0; transform: translateX(30px) scale(0.9); }
+  to { opacity: 1; transform: translateX(0) scale(1); }
+}
+
+.fab-item i { width: 24px; height: 24px; color: var(--yiriba-vert); }
+.fab-item span { font-weight: 600; font-size: 13px; color: var(--texte); }
+.fab-item:hover { background: var(--surface-soft); transform: translateX(-4px); }
+
+/* ── Drawer Menu Overlay (Mobile) ──────────────────────── */
+@media (max-width: 640px) {
+  .sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s ease;
+    z-index: 300;
+    width: 280px;
+    max-width: 85vw;
+  }
+  
+  .sidebar.open { transform: translateX(0); }
+  
+  .sidebar-overlay {
+    /* display:block obligatoire : style.css impose display:none, qui
+       l'emporterait sur opacity/visibility → overlay inclicable → tiroir
+       impossible à fermer */
+    display: block;
+    z-index: 299; /* toujours sous le tiroir (.sidebar z-index:300) mais au-dessus du contenu */
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.3s ease;
+  }
+  
+  .sidebar-overlay.visible {
+    opacity: 1;
+    visibility: visible;
+  }
+  
+  .menu-toggle { display: grid !important; }
+  
+  .main { margin-left: 0; width: 100%; }
+  
+  .sidebar-inner { height: 100vh; overflow-y: auto; }
+}
+
+/* ── Search Bar Collapsible ────────────────────────────── */
+@media (max-width: 768px) {
+  .search-wrap { width: 100%; max-width: none; order: 3; margin: 8px 0 0; }
+  .topbar {
+    flex-wrap: wrap;
+    height: auto;
+    padding: 10px 12px;
+    gap: 8px;
+  }
+  .topbar-title { font-size: 15px; }
+  .topbar-subtitle { display: none; }
+  .topbar-actions { width: 100%; justify-content: space-between; order: 2; }
+  .search-wrap { width: 100%; order: 3; }
+  .search { width: 100%; }
+}
+
+/* ── Tables → Cards on Mobile ──────────────────────────── */
+@media (max-width: 768px) {
+  .yiriba-table-wrap { overflow: visible; border: none; background: transparent; }
+  .yiriba-table { display: block; }
+  .yiriba-table thead { display: none; }
+  .yiriba-table tbody { display: block; }
+  .yiriba-table tr {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    margin-bottom: 12px;
+    padding: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .yiriba-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 10px 8px;
+    border-bottom: 1px solid rgba(8,61,43,0.05);
+    font-size: 14px;
+  }
+  .yiriba-table td::before {
+    content: attr(data-label);
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--texte-secondaire);
+    margin-right: 12px;
+  }
+  .yiriba-table td:last-child { border-bottom: none; }
+  .yiriba-table tr:last-child td { border-bottom: none; }
+  
+  .table-actions { justify-content: flex-end; }
+  .table-actions button { width: 36px; height: 36px; }
+  
+  /* Pagination compact */
+  .pagination { flex-direction: column; gap: 8px; text-align: center; }
+  .pagination-btns { flex-wrap: wrap; justify-content: center; }
+}
+
+/* ── Forms Stack on Mobile ─────────────────────────────── */
+@media (max-width: 640px) {
+  .auth-form-row { flex-direction: column; gap: 0; }
+  .auth-form-row .auth-field-group { width: 100%; }
+  
+  .auth-card { padding: 24px 16px 20px; border-radius: 16px; }
+  .auth-input-wrap input { padding: 16px 14px 16px 48px; font-size: 16px; }
+  .auth-submit-btn { padding: 14px; font-size: 15px; }
+  
+  .filter-bar { flex-direction: column; align-items: stretch; }
+  .filter-search { min-width: 0; width: 100%; }
+  .filter-select { width: 100%; min-width: 0; }
+  .filter-search-wrap { min-width: 0; }
+  
+  .page-toolbar { flex-direction: column; align-items: stretch; }
+  .btn-add, .btn-secondary { width: 100%; justify-content: center; }
+  
+  .auth-card { max-width: none; margin: 0; }
+  .auth-left { width: 100%; padding: 40px 20px; }
+  .auth-right { width: 100%; padding: 20px 0; }
+  .auth-screen { flex-direction: column; }
+  .auth-curve { display: none; }
+  .auth-left { min-height: 300px; }
+  
+  .brand-name { font-size: clamp(18px, 4vw, 22px); }
+  .auth-headline { font-size: clamp(24px, 6vw, 32px); }
+}
+
+/* ── Modals Full-Screen on Small Mobile ────────────────── */
+@media (max-width: 480px) {
+  .modal { width: 100vw; max-width: 100vw; height: 100vh; max-height: 100vh; border-radius: 0; margin: 0; }
+  .modal-body { max-height: calc(100vh - 120px); padding: 16px; }
+  .modal-header { padding: 16px; }
+  .modal-close { font-size: 24px; width: 44px; height: 44px; display: grid; place-items: center; }
+  
+  .toast-container { left: 12px; right: 12px; top: auto; bottom: 80px; }
+  .toast { min-width: 0; width: 100%; border-radius: 0; border-left: none; border-top: 4px solid; }
+}
+
+/* ── Indicator Cards Stack ─────────────────────────────── */
+@media (max-width: 640px) {
+  .indicator-row { grid-template-columns: 1fr; }
+  .indicator-card { flex-direction: column; align-items: flex-start; gap: 8px; padding: 14px; }
+  .indicator-icon { width: 48px; height: 48px; font-size: 18px; }
+  .indicator-info .indicator-val { font-size: 28px; }
+}
+
+/* ── Auth Screen Mobile ────────────────────────────────── */
+@media (max-width: 768px) {
+  .auth-screen { flex-direction: column; min-height: 100vh; }
+  .auth-left { width: 100%; padding: 32px 20px; min-height: auto; }
+  .auth-right { width: 100%; padding: 24px 16px; }
+  .auth-curve { display: none; }
+  .auth-card { max-width: none; margin: 0; box-shadow: none; border-radius: 0; padding: 0; background: transparent; }
+  .auth-card-icon { display: none; }
+  .auth-headline { font-size: clamp(24px, 6vw, 30px); margin-bottom: 12px; }
+  .auth-description { font-size: 14px; margin-bottom: 20px; }
+  .auth-divider { margin: 20px 0; }
+  .auth-features { gap: 12px; margin-bottom: 24px; }
+  .auth-feature-icon { width: 40px; height: 40px; font-size: 16px; }
+  .auth-feature-text strong { font-size: 14px; }
+  .auth-feature-text span { font-size: 12px; }
+  .auth-left-footer { display: none; }
+  .auth-school-illustration { display: none; }
+}
+
+/* ── Profile Dropdown Mobile ───────────────────────────── */
+@media (max-width: 640px) {
+  .profile-dropdown {
+    position: fixed;
+    bottom: 72px;
+    right: 16px;
+    left: 16px;
+    max-width: 100%;
+    border-radius: 16px 16px 0 0;
+    padding: 8px;
+    box-shadow: 0 -4px 24px rgba(0,0,0,0.15);
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-bottom: none;
+    animation: slideUp 0.25s ease-out;
+  }
+  
+  @keyframes slideUp {
+    from { transform: translateY(100%); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+  }
+  
+  .profile-dropdown-item {
+    width: 100%;
+    padding: 16px 16px;
+    font-size: 15px;
+    justify-content: flex-start;
+    border-radius: 10px;
+    min-height: 48px;
+  }
+  .profile-dropdown-item i { font-size: 18px; width: 24px; }
+}
+
+/* ── Welcome Banner Mobile ─────────────────────────────── */
+@media (max-width: 640px) {
+  .welcome { padding: 16px; border-radius: 12px; }
+  .welcome h1 { font-size: clamp(20px, 5vw, 26px); }
+  .welcome p { font-size: 13px; }
+  .welcome::after { display: none; }
+}
+
+/* ── Offline Bar ───────────────────────────────────────── */
+.offline-bar.visible { position: fixed; top: 0; left: 0; right: 0; z-index: 500; border-radius: 0; }
+
+@media (max-width: 640px) {
+  .offline-bar.visible { top: auto; bottom: 64px; border-radius: 0; }
+}
+
+/* ── Reduce Motion ─────────────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ── High Contrast Mode ────────────────────────────────── */
+@media (prefers-contrast: high) {
+  :root {
+    --border: #000;
+    --texte-secondaire: #333;
+    --surface-soft: #eee;
+  }
+  .nav-link.active { border: 2px solid var(--yiriba-vert); }
+  .topbar-btn { border: 2px solid #000; }
+}
+
+/* ── Print Styles ──────────────────────────────────────── */
+@media print {
+  .sidebar, .topbar, .bottom-nav, .fab-container, .offline-bar,
+  .modal-overlay, .toast-container, .page-toolbar .btn-add,
+  .table-actions, .pagination, .filter-bar { display: none !important; }
+  .main { margin-left: 0; width: 100%; }
+  .content { padding: 0; max-width: none; }
+  .yiriba-table-wrap { border: 1px solid #000; }
+  .yiriba-table th { background: #eee; border: 1px solid #000; }
+  .yiriba-table td { border: 1px solid #000; }
+  .yiriba-table tr { page-break-inside: avoid; }
+  .indicator-card { break-inside: avoid; }
+  .modal-overlay { display: none !important; }
+}
+
+/* ── Landscape Phone Orientation ───────────────────────── */
+@media (max-height: 500px) and (orientation: landscape) {
+  .bottom-nav { height: 56px; }
+  .main { padding-bottom: 64px; }
+  .auth-card { padding: 16px; }
+  .auth-headline { font-size: 22px; }
+  .modal { max-height: 95vh; }
+  .modal-body { max-height: 70vh; }
+}
+
+/* ── Safe Area Insets (iPhone X+) ──────────────────────── */
+@supports (padding: max(0px)) {
+  @media (max-width: 640px) {
+    .bottom-nav { padding-bottom: max(8px, env(safe-area-inset-bottom)); height: calc(64px + max(0px, env(safe-area-inset-bottom))); }
+    .fab-container { bottom: calc(80px + max(0px, env(safe-area-inset-bottom))); }
+    .sidebar { padding-bottom: max(0px, env(safe-area-inset-bottom)); }
+    .offline-bar.visible { bottom: calc(64px + max(0px, env(safe-area-inset-bottom))); }
+    .profile-dropdown { bottom: calc(72px + max(0px, env(safe-area-inset-bottom))); }
+    .toast-container { bottom: calc(80px + max(0px, env(safe-area-inset-bottom))); }
+    .modal { padding-bottom: max(0px, env(safe-area-inset-bottom)); }
+  }
+}
+
+/* ── Loading Skeleton ──────────────────────────────────── */
+.skeleton {
+  background: linear-gradient(90deg, var(--surface-soft) 25%, var(--border) 50%, var(--surface-soft) 75%);
+  background-size: 200% 100%;
+  animation: skeleton 1.2s ease-in-out infinite;
+  border-radius: var(--radius-sm);
+}
+
+@keyframes skeleton {
+  0% { background-position: 200% 0; }
+  100% { background-position: -200% 0; }
+}
+
+.skeleton-text { height: 1rem; margin-bottom: 0.5rem; }
+.skeleton-title { height: 1.5rem; width: 60%; margin-bottom: 1rem; }
+.skeleton-avatar { width: 40px; height: 40px; border-radius: 50%; }
+.skeleton-card { height: 120px; border-radius: var(--radius-md); }
+.skeleton-table-row { height: 56px; }
+
+/* ── Focus Visible (Keyboard Navigation) ───────────────── */
+:focus:not(:focus-visible) { outline: none; }
+:focus-visible {
+  outline: 3px solid var(--yiriba-vert);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Fix focus-visible for buttons with custom styles */
+.btn-add:focus-visible,
+.btn-secondary:focus-visible,
+.auth-submit-btn:focus-visible,
+.topbar-btn:focus-visible,
+.nav-link:focus-visible,
+.table-actions button:focus-visible,
+.fab-btn:focus-visible,
+.fab-item:focus-visible,
+.modal-close:focus-visible,
+.auth-tab:focus-visible {
+  outline: 3px solid var(--yiriba-vert);
+  outline-offset: 2px;
+}
+
+/* ── Scrollbar Styling ─────────────────────────────────── */
+@media (max-width: 640px) {
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+  ::-webkit-scrollbar-thumb:hover { background: var(--texte-secondaire); }
+}
+
+/* ── Image Optimization ────────────────────────────────── */
+img { max-width: 100%; height: auto; display: block; }
+.avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+
+/* ── Utility Classes ───────────────────────────────────── */
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); white-space: nowrap; border: 0; }
+.text-center { text-align: center; }
+.mt-1 { margin-top: var(--spacing-xs); }
+.mt-2 { margin-top: var(--spacing-sm); }
+.mt-3 { margin-top: var(--spacing-md); }
+.mt-4 { margin-top: var(--spacing-lg); }
+.mb-1 { margin-bottom: var(--spacing-xs); }
+.mb-2 { margin-bottom: var(--spacing-sm); }
+.mb-3 { margin-bottom: var(--spacing-md); }
+.mb-4 { margin-bottom: var(--spacing-lg); }
+.p-1 { padding: var(--spacing-xs); }
+.p-2 { padding: var(--spacing-sm); }
+.p-3 { padding: var(--spacing-md); }
+.p-4 { padding: var(--spacing-lg); }
+.d-flex { display: flex; }
+.flex-1 { flex: 1; }
+.items-center { align-items: center; }
+.justify-center { justify-content: center; }
+.justify-between { justify-content: space-between; }
+.gap-1 { gap: var(--spacing-xs); }
+.gap-2 { gap: var(--spacing-sm); }
+.gap-3 { gap: var(--spacing-md); }
+.gap-4 { gap: var(--spacing-lg); }
+.w-full { width: 100%; }
+.hidden { display: none !important; }
+@media (max-width: 640px) { .mobile\:hidden { display: none !important; } .mobile\:block { display: block !important; } .mobile\:flex { display: flex !important; } }
+
+/* =========================================================
+   END MOBILE-FIRST ENHANCEMENTS
+   ========================================================= */

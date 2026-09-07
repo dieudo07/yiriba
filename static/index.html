@@ -10,6 +10,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="icon" type="image/jpeg" href="/logo/logo.jpg">
   <link rel="stylesheet" href="/static/style.css?v=79">
+  <link rel="stylesheet" href="/static/mobile.css?v=2">
 </head>
 <body>
 
@@ -485,6 +486,25 @@
   </main>
 </div>
 
+  <!-- ═══ BOTTOM NAV (Mobile) ═══ -->
+  <nav class="bottom-nav" id="bottom-nav" aria-label="Navigation principale">
+    <button class="bottom-nav-item" data-page="dashboard" onclick="loadPage('dashboard')" aria-label="Tableau de bord">
+      <i class="fas fa-house"></i><span data-i18n="nav.dashboard">Accueil</span>
+    </button>
+    <button class="bottom-nav-item" data-page="students" onclick="loadPage('students')" aria-label="Élèves">
+      <i class="fas fa-user-graduate"></i><span data-i18n="nav.students">Élèves</span>
+    </button>
+    <button class="bottom-nav-item" data-page="payments" onclick="loadPage('payments')" aria-label="Paiements">
+      <i class="fas fa-money-bill-wave"></i><span data-i18n="nav.payments">Paiements</span>
+    </button>
+    <button class="bottom-nav-item" data-page="bulletins" onclick="loadPage('bulletins')" aria-label="Bulletins">
+      <i class="fas fa-file-lines"></i><span data-i18n="nav.bulletins">Bulletins</span>
+    </button>
+    <button class="bottom-nav-item" data-page="settings" onclick="loadPage('settings')" aria-label="Paramètres">
+      <i class="fas fa-gear"></i><span data-i18n="nav.settings">Réglages</span>
+    </button>
+  </nav>
+
 <!-- Modal -->
 <div id="modal-overlay" class="modal-overlay" style="display:none" onclick="if(event.target===this)closeModal()">
   <div class="modal">
@@ -502,7 +522,7 @@
 </div>
 <script src="/static/i18n.js?v=71"></script>
 <script src="/static/offline-sync.js?v=72"></script>  <script src="/static/admin_nav.js?v=1"></script>
-  <script src="/static/app.js?v=110"></script>
+  <script src="/static/app.js?v=111"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <script src="/static/teacher_portal.js?v=71"></script>
 <script src="/static/parent_portal.js?v=79"></script>
