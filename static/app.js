@@ -702,7 +702,19 @@ async function enterApp() {
   // Store role_type for portal routing
   state.roleType = state.user?.role_type || 'admin';
   // Load portal-specific sidebar and dashboard
+  refreshPlatformAdminFlag();
   loadPortal(state.roleType);
+}
+
+/* Probe silencieux : l'utilisateur courant est-il admin de la plateforme
+   YIRIBA (PLATFORM_ADMIN_EMAILS côté serveur) ? Si oui, la navigation
+   affiche l'entrée « Écoles YIRIBA ». */
+async function refreshPlatformAdminFlag() {
+  try {
+    const r = await api('/api/platform/summary');
+    window._isPlatformAdmin = r.ok;
+  } catch (e) { window._isPlatformAdmin = false; }
+  if (window._isPlatformAdmin && typeof renderAdminNav === 'function') renderAdminNav();
 }
 
 /* ==============================================================
@@ -875,6 +887,7 @@ function loadPage(page) {
     'next-year': ['Préparer l\'année suivante', 'Inscriptions'],
     'c-dashboard': ['Accueil', 'Portail Comptabilité'],
     'subscription': ['Abonnement', 'Forfait'],
+    'platform': ['Écoles YIRIBA', 'Administration plateforme'],
   };
   const [ti, su] = portalPages[page] || ['Yiriba', ''];
   document.querySelector('.topbar-title').textContent = ti;
@@ -896,6 +909,7 @@ function loadPage(page) {
   else if (page === 'users') loadUsers();
   else if (page === 'roles') loadRoles();
   else if (page === 'subscription') loadSubscription();
+  else if (page === 'platform') loadPlatformPage();
   else if (page === 'audit') loadAudit();
   else if (page === 'communication') loadCommunication();
   else if (page === 'notif-preferences') loadNotifPreferences();
@@ -7669,3 +7683,151 @@ window.addEventListener('resize', () => mobilizeTables());
 document.addEventListener('click', (e) => {
   if (!e.target.closest('.row-actions-wrap')) closeAllRowMenus();
 });
+
+/* ==============================================================
+   ADMINISTRATION PLATEFORME YIRIBA — Écoles inscrites au SaaS
+   Réservé aux emails listés dans PLATFORM_ADMIN_EMAILS (backend).
+   ============================================================== */
+
+let _platformSchoolsCache = null;
+
+async function loadPlatformPage() {
+  const c = document.getElementById('main-content');
+  c.innerHTML = `
+    <div class="welcome">
+      <h1>Écoles YIRIBA</h1>
+      <p>Établissements inscrits sur la plateforme — toutes écoles confondues.</p>
+    </div>
+    <div id="platform-summary"><div class="card section-card" style="padding:24px;text-align:center;color:var(--texte-secondaire)">Chargement…</div></div>
+    <div class="card section-card" style="margin-top:14px">
+      <div class="section-header" style="margin-bottom:12px">
+        <div>
+          <div class="section-title">Écoles inscrites</div>
+          <div class="section-description" id="platform-count"></div>
+        </div>
+        <div class="filter-search-wrap" style="max-width:280px">
+          <i class="fas fa-search"></i>
+          <input type="search" id="platform-search" class="filter-search" placeholder="Rechercher une école, une ville…" oninput="platformSearchDebounced()">
+        </div>
+      </div>
+      <div class="yiriba-table-wrap"><table class="yiriba-table" id="platform-table">
+        <thead><tr>
+          <th>École</th><th>Ville</th><th>Forfait</th><th>Statut</th>
+          <th>Élèves</th><th>Utilisateurs</th><th>Inscrite le</th><th>Actions</th>
+        </tr></thead>
+        <tbody id="platform-tbody"><tr><td colspan="8" style="text-align:center;color:var(--texte-secondaire)">Chargement…</td></tr></tbody>
+      </table></div>
+    </div>`;
+
+  try {
+    const [rs, rl] = await Promise.all([
+      api('/api/platform/summary'),
+      api('/api/platform/schools?limit=500')
+    ]);
+    if (!rs.ok || !rl.ok) {
+      c.innerHTML = `<div class="welcome"><h1>Écoles YIRIBA</h1></div>
+        <div class="card section-card" style="padding:24px">Accès réservé à l'administration plateforme YIRIBA.</div>`;
+      return;
+    }
+    const s = await rs.json();
+    const l = await rl.json();
+    _platformSchoolsCache = l.schools;
+
+    document.getElementById('platform-summary').innerHTML = `
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(170px,1fr));gap:12px">
+        ${[
+          ['fa-school', 'Écoles', s.total_schools],
+          ['fa-seedling', 'En essai', s.trial_schools],
+          ['fa-circle-check', 'Abonnées', s.active_schools],
+          ['fa-circle-exclamation', 'Expirées / annulées', s.expired_schools],
+          ['fa-hourglass-end', 'Essais expirés', s.expired_trials],
+          ['fa-user-graduate', 'Élèves (total)', s.total_students.toLocaleString('fr-FR')],
+          ['fa-users', 'Comptes actifs', s.total_users.toLocaleString('fr-FR')],
+        ].map(([ic, lb, v]) => `
+          <div class="card indicator-card" style="padding:14px">
+            <div class="stat-label" style="font-size:11px"><i class="fas ${ic}" style="margin-right:5px;opacity:.6"></i>${lb}</div>
+            <div class="stat-number" style="font-size:24px">${v}</div>
+          </div>`).join('')}
+      </div>`;
+
+    document.getElementById('platform-count').textContent = `${l.total} école(s) au total`;
+    renderPlatformRows(l.schools);
+  } catch (e) {
+    document.getElementById('platform-tbody').innerHTML =
+      `<tr><td colspan="8" style="text-align:center;color:var(--danger,#c0392b)">Erreur de chargement : ${escapeHtml(String(e.message || e))}</td></tr>`;
+  }
+}
+
+function platformSearchDebounced() {
+  clearTimeout(window._platformSearchTimer);
+  window._platformSearchTimer = setTimeout(() => {
+    const q = (document.getElementById('platform-search')?.value || '').trim().toLowerCase();
+    const rows = (_platformSchoolsCache || []).filter(x =>
+      !q || [x.name, x.slug, x.city, x.short_name].some(v => (v || '').toLowerCase().includes(q)));
+    renderPlatformRows(rows);
+  }, 250);
+}
+
+function _platformStatusBadge(x) {
+  if (x.is_active === false) return '<span class="badge" style="background:#fdecea;color:#b3261e">Gelée</span>';
+  const map = {
+    trial:    ['Essai',        '#fff8e1', '#8a6d00'],
+    active:   ['Abonnée',      '#e6f4ea', '#0e5c3f'],
+    expired:  ['Expirée',      '#fdecea', '#b3261e'],
+    cancelled:['Annulée',      '#f1f3f4', '#5f6368'],
+  };
+  const [label, bg, fg] = map[x.subscription_status] || [x.subscription_status, '#f1f3f4', '#5f6368'];
+  return `<span class="badge" style="background:${bg};color:${fg}">${label}</span>`;
+}
+
+function renderPlatformRows(schools) {
+  const tb = document.getElementById('platform-tbody');
+  if (!tb) return;
+  if (!schools.length) {
+    tb.innerHTML = '<tr><td colspan="8" style="text-align:center;color:var(--texte-secondaire)">Aucune école inscrite pour le moment.</td></tr>';
+    return;
+  }
+  tb.innerHTML = schools.map(x => {
+    const plan = x.current_plan ? escapeHtml(x.current_plan.name) : '<span style="color:var(--texte-secondaire)">—</span>';
+    const trial = x.trial_ends_at ? new Date(x.trial_ends_at).toLocaleDateString('fr-FR') : '—';
+    const created = x.created_at ? new Date(x.created_at).toLocaleDateString('fr-FR') : '—';
+    return `<tr>
+      <td><strong>${escapeHtml(x.name)}</strong><br><span style="font-size:11px;color:var(--texte-secondaire)">${escapeHtml(x.slug || '')}</span></td>
+      <td>${escapeHtml(x.city || '—')}</td>
+      <td>${plan}</td>
+      <td>${_platformStatusBadge(x)}</td>
+      <td>${x.student_count ?? 0}</td>
+      <td>${x.user_count ?? 0}</td>
+      <td>${created}<br><span style="font-size:11px;color:var(--texte-secondaire)">essai : ${trial}</span></td>
+      <td><div class="table-actions">
+        ${x.is_active === false
+          ? `<button class="btn-secondary" title="Réactiver l'accès" onclick="platformSetFreeze(${x.id}, false)"><i class="fas fa-play"></i></button>`
+          : `<button class="btn-secondary" title="Geler l'accès (école bloquée)" onclick="platformSetFreeze(${x.id}, true)"><i class="fas fa-pause"></i></button>`}
+        <button class="btn-secondary" title="Réinitialiser le mot de passe de l'admin de l'école" onclick="platformResetAdminPwd(${x.id}, '${escapeHtml(x.name).replace(/'/g, "\'")}')"><i class="fas fa-key"></i></button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+async function platformSetFreeze(schoolId, freeze) {
+  const msg = freeze
+    ? 'Geler cette école ? Tous ses utilisateurs perdront l\'accès jusqu\'au dégel.'
+    : 'Réactiver l\'accès de cette école ?';
+  if (!confirm(msg)) return;
+  try {
+    const r = await api(`/api/platform/schools/${schoolId}/${freeze ? 'freeze' : 'unfreeze'}`, { method: 'POST' });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { alert(d.detail || 'Opération impossible'); return; }
+    loadPlatformPage();
+  } catch (e) { alert('Erreur réseau : ' + (e.message || e)); }
+}
+
+async function platformResetAdminPwd(schoolId, schoolName) {
+  if (!confirm(`Réinitialiser le mot de passe de l'administrateur de « ${schoolName} » ?\nUn mot de passe temporaire sera généré (à changer à la prochaine connexion).`)) return;
+  try {
+    const r = await api(`/api/platform/schools/${schoolId}/reset-admin-password`, { method: 'POST' });
+    const d = await r.json().catch(() => ({}));
+    if (!r.ok) { alert(d.detail || 'Opération impossible'); return; }
+    prompt(`Mot de passe temporaire pour l'admin de « ${schoolName} » (transmettez-le à l'école) :`, d.temp_password || d.password || JSON.stringify(d));
+  } catch (e) { alert('Erreur réseau : ' + (e.message || e)); }
+}

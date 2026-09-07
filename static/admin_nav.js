@@ -104,10 +104,17 @@ function renderAdminNav() {
 
   const groups = ADMIN_NAV_GROUPS.filter(g => !g.adminOnly || isAdmin);
 
+  const platformLink = window._isPlatformAdmin ? `
+    <a class="nav-link" data-page="platform" onclick="loadPage('platform')" href="javascript:void(0)" title="Administration plateforme YIRIBA">
+      <span class="nav-icon"><i class="fas fa-globe"></i></span><span>Écoles YIRIBA</span>
+    </a>
+  ` : '';
+
   nav.innerHTML = `
     <a class="nav-link" data-page="dashboard" onclick="loadPage('dashboard')" href="javascript:void(0)">
       <span class="nav-icon"><i class="fas fa-house"></i></span><span>Tableau de bord</span>
     </a>
+    ${platformLink}
   `;
 
   if (navAdmin) {
