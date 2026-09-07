@@ -91,7 +91,7 @@ class Settings(BaseSettings):
     # ── Google OAuth ──────────────────────────────────────────────
     GOOGLE_CLIENT_ID: str = ""
     GOOGLE_CLIENT_SECRET: str = ""
-    GOOGLE_REDIRECT_URI: str = "http://127.0.0.1:5050/api/auth/google/callback"
+    GOOGLE_REDIRECT_URI: str = ""  # vide = dérivé automatiquement de l'adresse du navigateur
 
     # ── Captcha (Cloudflare Turnstile) ────────────────────────────
     TURNSTILE_SITE_KEY: str = ""

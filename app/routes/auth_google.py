@@ -24,7 +24,7 @@ import time
 import urllib.parse
 
 import httpx
-from fastapi import APIRouter, Depends, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query, Request
 from fastapi.responses import RedirectResponse
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -51,26 +51,34 @@ _oauth_states: dict[str, dict] = {}
 _oauth_lock = threading.Lock()
 
 
-def _new_oauth_state(school_slug: str) -> str:
+def _new_oauth_state(school_slug: str, redirect_uri: str) -> str:
     """Generate a random state token and remember it server-side."""
     state = secrets.token_urlsafe(32)
     with _oauth_lock:
         _purge_oauth_states()
         _oauth_states[state] = {
             "school_slug": school_slug,
+            "redirect_uri": redirect_uri,
             "expires_at": time.monotonic() + _OAUTH_STATE_TTL,
         }
     return state
 
 
-def _consume_oauth_state(state: str) -> str:
-    """Validate and consume a state token. Returns the tied school_slug or ''."""
+def _consume_oauth_state(state: str) -> dict:
+    """Validate and consume a state token.
+
+    Returns {"school_slug": str, "redirect_uri": str} (valeurs vides si
+    le state est inconnu/expiré).
+    """
     with _oauth_lock:
         _purge_oauth_states()
         record = _oauth_states.pop(state, None)
     if record is None:
-        return ""
-    return record["school_slug"] or ""
+        return {"school_slug": "", "redirect_uri": ""}
+    return {
+        "school_slug": record.get("school_slug") or "",
+        "redirect_uri": record.get("redirect_uri") or "",
+    }
 
 
 def _purge_oauth_states() -> None:
@@ -80,8 +88,22 @@ def _purge_oauth_states() -> None:
         _oauth_states.pop(s, None)
 
 
+def _resolve_redirect_uri(request: Request, forced: str = "") -> str:
+    """URI de rappel OAuth : valeur explicite si configurée, sinon dérivée
+    de l'adresse réellement utilisée par le navigateur (en-tête Host —
+    127.0.0.1, localhost, domaine de production…) — évite les
+    redirect_uri_mismatch."""
+    if forced:
+        return forced
+    host = request.headers.get("host")
+    if host:
+        scheme = request.headers.get("x-forwarded-proto", request.url.scheme)
+        return f"{scheme}://{host}/api/auth/google/callback"
+    return str(request.base_url).rstrip("/") + "/api/auth/google/callback"
+
+
 @router.get("/api/auth/google")
-async def google_login(school_slug: str = Query(default="")):
+async def google_login(request: Request, school_slug: str = Query(default="")):
     """Redirect the user to Google's OAuth consent screen.
 
     Optionally accepts a school_slug query param so the user can be
@@ -93,10 +115,11 @@ async def google_login(school_slug: str = Query(default="")):
             detail="Google OAuth n'est pas configuré. Contactez l'administrateur.",
         )
 
-    state = _new_oauth_state(school_slug.strip())
-
-    # Build the redirect URI
-    redirect_uri = settings.GOOGLE_REDIRECT_URI
+    # ── Build the redirect URI ────────────────────────────────────
+    # Dérivée de l'adresse du navigateur sauf si GOOGLE_REDIRECT_URI est
+    # définie explicitement (utile derrière un proxy comme Render).
+    redirect_uri = _resolve_redirect_uri(request, settings.GOOGLE_REDIRECT_URI)
+    state = _new_oauth_state(school_slug.strip(), redirect_uri)
 
     params = {
         "client_id": settings.GOOGLE_CLIENT_ID,
@@ -114,6 +137,7 @@ async def google_login(school_slug: str = Query(default="")):
 
 @router.get("/api/auth/google/callback")
 async def google_callback(
+    request: Request,
     code: str = Query(default=""),
     state: str = Query(default=""),
     error: str = Query(default=""),
@@ -151,10 +175,14 @@ async def google_callback(
     if not state:
         return RedirectResponse(url="/?error=state_invalide", status_code=302)
 
-    school_slug = _consume_oauth_state(state)
+    school_slug, state_redirect_uri = _consume_oauth_state(state).values()
 
     # ── Step 1: Exchange code for tokens ──────────────────────────
-    redirect_uri = settings.GOOGLE_REDIRECT_URI
+    # Doit être IDENTIQUE à celui envoyé au début du flow : on réutilise
+    # celui mémorisé dans le state, sinon on redérive de la requête.
+    redirect_uri = state_redirect_uri or _resolve_redirect_uri(
+        request, settings.GOOGLE_REDIRECT_URI
+    )
 
     async with httpx.AsyncClient() as client:
         token_response = await client.post(
