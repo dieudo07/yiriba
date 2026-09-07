@@ -1413,6 +1413,17 @@ a { text-decoration: none; color: inherit; }
   .sidebar { width: min(300px, 86vw) !important; }
   .sidebar .nav-group-label { display: inline; }   /* labels visibles dans l'overlay */
   .sidebar .nav-chev { display: inline; }
+  /* Réafficher les sous-modules : le mode icônes (≤800px) cache .nav-link span,
+     mais le tiroir mobile doit montrer le menu complet */
+  .sidebar .nav-link span { display: inline; }
+  .sidebar .nav-link { justify-content: flex-start; }
+  /* Le tiroir est un vrai menu : logo texte, contexte école et déconnexion visibles */
+  .sidebar .brand { justify-content: flex-start; }
+  .sidebar .brand-name { display: inline; }
+  .sidebar .school-context { display: block; }
+  .sidebar .sidebar-bottom { display: block; }
+  /* FAB au-dessus de la barre de navigation inférieure (64px) */
+  .fab-container { bottom: calc(84px + env(safe-area-inset-bottom, 0px)) !important; }
 }
 
 /* Tablette (800px) : sidebar compacte à icônes — cacher labels + chevrons
