@@ -1440,6 +1440,18 @@ a { text-decoration: none; color: inherit; }
   #main-content .welcome h1,
   #main-content .welcome p { overflow-wrap: anywhere; }
   #main-content .welcome { overflow: hidden; }
+
+  /* Bienvenue dashboard : le titre ne doit pas être écrasé par la carte
+     forfait (min-width:280px en flex space-between) → on empile */
+  #main-content .welcome div[style*="justify-content:space-between"] {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 12px;
+  }
+  #main-content .welcome div[style*="min-width:280px"] {
+    min-width: 0 !important;
+    width: 100%;
+  }
   /* Les cartes indicateurs restent empilées sans déborder */
   #main-content .indicator-row > * { min-width: 0; }
   /* La barre d'outils (recherche + filtres + boutons) s'empile proprement */
