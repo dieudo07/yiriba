@@ -168,6 +168,20 @@ async def login(
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Compte désactivé")
 
+    # Défense en profondeur : un compte élève lié à un élève retiré /
+    # transféré / diplômé ne doit pas pouvoir se connecter, même si le
+    # compte User n'a pas encore été synchronisé. Le lien est Student.user_id.
+    if user.role_type == UserRole.STUDENT:
+        from app.models.student import Student, StudentStatus
+        student = (await db.execute(
+            select(Student).where(Student.user_id == user.id, Student.school_id == user.school_id)
+        )).scalar_one_or_none()
+        if student and student.status != StudentStatus.ACTIVE:
+            raise HTTPException(
+                status_code=403,
+                detail="Ce compte élève n'est plus actif (élève retiré ou transféré). Contactez l'administration.",
+            )
+
     # Update login info
     user.last_login_at = datetime.now(UTC)
     user.last_login_ip = ip

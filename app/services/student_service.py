@@ -441,10 +441,28 @@ async def change_student_status(
     old_status = student.status
     student.status = status
     student.status_reason = reason
+
+    # Synchroniser le compte de connexion lié (s'il existe) : un élève
+    # retiré/transféré/diplômé ne doit plus pouvoir se connecter.
+    user_status_synced = None
+    if student.user_id:
+        from app.models.user import User, UserStatus
+        linked_user = (await db.execute(
+            select(User).where(User.id == student.user_id, User.school_id == school_id)
+        )).scalar_one_or_none()
+        if linked_user:
+            if status == StudentStatus.ACTIVE:
+                linked_user.status = UserStatus.ACTIVE
+                user_status_synced = "active"
+            else:
+                # withdrawn / transferred / graduated / inactive -> compte suspendu
+                linked_user.status = UserStatus.SUSPENDED
+                user_status_synced = "suspended"
+
     await db.flush()
     await db.refresh(student)
     from app.services.audit_service import safe_audit
-    await safe_audit(db, school_id=school_id, action="student.status_change", resource="student", resource_id=student.id, details={"old_status": old_status.value if hasattr(old_status, 'value') else str(old_status), "new_status": status.value if hasattr(status, 'value') else str(status), "reason": reason})
+    await safe_audit(db, school_id=school_id, action="student.status_change", resource="student", resource_id=student.id, details={"old_status": old_status.value if hasattr(old_status, 'value') else str(old_status), "new_status": status.value if hasattr(status, 'value') else str(status), "reason": reason, "linked_user_status": user_status_synced})
     return student
 
 

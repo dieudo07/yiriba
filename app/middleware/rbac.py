@@ -63,6 +63,17 @@ async def get_current_user(
     if user.status.value != "active":
         raise HTTPException(status_code=403, detail="Compte non activé")
 
+    # Défense en profondeur : un compte élève dont l'élève a été retiré /
+    # transféré / diplômé perd l'accès immédiatement, même avec un token
+    # encore valide (vérifié à CHAQUE requête API).
+    if user.role_type == UserRole.STUDENT:
+        from app.models.student import Student, StudentStatus
+        student = (await db.execute(
+            select(Student).where(Student.user_id == user.id)
+        )).scalar_one_or_none()
+        if student and student.status != StudentStatus.ACTIVE:
+            raise HTTPException(status_code=403, detail="Ce compte élève n'est plus actif")
+
     # Attach school_id from token (never from client)
     user._school_id_from_token = payload.get("school_id")
     return user
