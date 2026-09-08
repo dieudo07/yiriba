@@ -5210,7 +5210,7 @@ async function loadUsers() {
 }
 async function activateUser(id) {
   try {
-    const res = await api(`/api/admin/users/${id}/validate`, { method: 'POST' });
+    const res = await api(`/api/admin/users/${id}/validate`, { method: 'PUT' });
     if (res?.ok || res?.status === 200) { showToast('Compte activé'); loadUsers(); }
     else { showToast('Erreur', 'error'); }
   } catch { showToast('Erreur réseau', 'error'); }
