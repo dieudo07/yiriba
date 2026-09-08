@@ -9,7 +9,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from app.core.config import get_settings
-from app.core.database import Base, async_session_factory, engine
+from app.core.database import Base, async_session_factory, engine, wait_for_db
 from app.core.seeds import (
     backfill_roles_for_existing_schools,
     seed_permissions,
@@ -35,9 +35,15 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Startup: create tables + seed permissions. Shutdown: cleanup."""
     logger.info("🚀 Yiriba SaaS starting...")
 
-    # Create tables if missing (idempotent). With SQLite there is no Alembic
-    # migration chain, so create_all must ALWAYS run — including in production
-    # on Render, where the database starts empty.
+    # Attendre que la base soit joignable (démarrage à froid des bases gérées
+    # Render/Neon/Supabase). Sans effet si la base répond immédiatement.
+    await wait_for_db()
+
+    # Create tables if missing (idempotent). create_all ne touche pas aux
+    # tables existantes, donc c'est sûr sur une base déjà remplie : il crée
+    # uniquement ce qui manque. C'est la stratégie par défaut (aucune chaîne
+    # Alembic actuelle) — sur PostgreSQL, créer les tables manquantes est
+    # idempotent et n'efface jamais les données.
     async with engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
 
@@ -77,6 +83,7 @@ async def security_headers(request: Request, call_next) -> Response:  # type: ig
     response.headers["X-Frame-Options"] = "DENY"
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    response.headers["Permissions-Policy"] = "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
     if settings.is_production:
         response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
         response.headers["Content-Security-Policy"] = (
@@ -191,12 +198,30 @@ import os
 from pathlib import Path
 
 STATIC_DIR = str(Path(__file__).resolve().parent.parent / "static")
+
+# ── Uploads : dossiers persistants (configurables via UPLOAD_DIR) ──
+# UPLOAD_DIR peut pointer vers un volume persistant (ex. /app/data/uploads)
+# pour que logos, photos et fichiers survivent aux redéploiements, quel
+# que soit l'hébergeur (Render, Wanekoo, VPS...).
+UPLOAD_ROOT = settings.upload_path  # crée le dossier si absent
+UPLOAD_ROOT_LOGOS = UPLOAD_ROOT / "logos"
+UPLOAD_ROOT_PHOTOS = UPLOAD_ROOT / "photos"
+for _d in (UPLOAD_ROOT, UPLOAD_ROOT_LOGOS, UPLOAD_ROOT_PHOTOS):
+    _d.mkdir(parents=True, exist_ok=True)
+
+# 1) Compatibilité : les photos élèves sont servies sous /static/uploads/...
+#    (URLs historiques stockées en base). Ce mount DOIT être déclaré avant
+#    /static pour avoir la priorité sur /static/uploads/... .
+app.mount("/static/uploads", StaticFiles(directory=str(UPLOAD_ROOT)), name="static-uploads")
+
 if os.path.isdir(STATIC_DIR):
     app.mount(
         "/static",
         StaticFiles(directory=STATIC_DIR),
         name="static",
     )
+else:
+    logger.warning("Dossier static/ introuvable : %s", STATIC_DIR)
 
 
 @app.middleware("http")
@@ -218,10 +243,9 @@ LOGO_DIR = str(Path(__file__).resolve().parent.parent / "logo")
 if os.path.isdir(LOGO_DIR):
     app.mount("/logo", StaticFiles(directory=LOGO_DIR), name="logo")
 
-# Mount uploads directory
-UPLOADS_DIR = str(Path(__file__).resolve().parent.parent / "uploads")
-if os.path.isdir(UPLOADS_DIR):
-    app.mount("/uploads", StaticFiles(directory=UPLOADS_DIR), name="uploads")
+# 2) Mount uploads standard : /uploads/logos/... (logos d'école) et
+#    /uploads/photos/... — servis depuis le dossier persistant.
+app.mount("/uploads", StaticFiles(directory=str(UPLOAD_ROOT)), name="uploads")
 
 
 # ── Health Check ──────────────────────────────────────────────────

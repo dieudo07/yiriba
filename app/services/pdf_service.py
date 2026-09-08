@@ -69,8 +69,15 @@ def _resolve_uploaded_logo(logo_url: str | None) -> tuple[str | None, str | None
     if not logo_url:
         return None, None
 
-    uploads_root = (Path(__file__).resolve().parent.parent.parent / "uploads").resolve()
+    # Dossier uploads persistant (UPLOAD_DIR configurable — ex. /app/data/uploads)
+    uploads_root = get_settings().upload_path.resolve()
     rel = logo_url.replace("\\", "/").lstrip("/")
+    # Les URLs historiques contiennent le préfixe uploads/ ou static/uploads/ :
+    # on le retire pour obtenir le chemin relatif au dossier racine uploads.
+    for prefix in ("static/uploads/", "uploads/"):
+        if rel.startswith(prefix):
+            rel = rel[len(prefix):]
+            break
     try:
         candidate = (uploads_root / rel).resolve()
     except (ValueError, OSError):

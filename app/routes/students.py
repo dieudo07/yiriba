@@ -510,12 +510,13 @@ async def upload_student_photo(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Formats acceptes : JPG, PNG, WebP. ({e})") from e
 
-    # Sauvegarder le fichier
-    import os
+    # Sauvegarder le fichier — dans le dossier uploads persistant (UPLOAD_DIR)
     import uuid
     from pathlib import Path
 
-    upload_dir = Path("static/uploads/photos")
+    from app.core.config import get_settings
+
+    upload_dir = get_settings().upload_path / "photos"
     upload_dir.mkdir(parents=True, exist_ok=True)
 
     filename = f"student_{school_id}_{student_id}_{uuid.uuid4().hex[:8]}.{ext}"

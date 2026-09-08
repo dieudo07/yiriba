@@ -1,0 +1,44 @@
+# Render Blueprint — Yiriba SaaS
+# Déploiement avec disque persistant : la base PostgreSQL et les uploads
+# survivent aux redéploiements.
+#
+# À créer via : Render → New → Blueprint → connecter ce dépôt.
+# Les variables sensibles (SECRETS, GOOGLE_*, SMTP_*, PLATFORM_ADMIN_EMAILS)
+# se définissent dans Render → Environment (pas dans git).
+
+services:
+  - type: web
+    name: yiriba
+    runtime: docker
+    plan: starter
+    healthCheckPath: /health
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_SECRET_KEY
+        generateValue: true
+      - key: JWT_SECRET_KEY
+        generateValue: true
+      - key: SERVER_URL
+        value: https://yiriba.onrender.com
+      # La base doit être EXTERNE au conteneur (PostgreSQL géré) :
+      # - soit créée via Render → New → PostgreSQL, puis coller l'URL interne ici ;
+      # - soit fournie par un autre fournisseur (Neon, Supabase, ...).
+      # Le driver async (asyncpg) est ajouté automatiquement.
+      - key: DATABASE_URL
+        sync: false
+      # Uploads sur le disque persistant (survit aux redéploiements)
+      - key: UPLOAD_DIR
+        value: /app/data/uploads
+      - key: RATE_LIMIT_LOGIN
+        value: 5/minute
+      - key: RATE_LIMIT_API
+        value: 60/minute
+      - key: CORS_ORIGINS
+        value: "*"
+    disk:
+      name: yiriba-data
+      mountPath: /app/data
+      sizeGB: 1

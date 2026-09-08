@@ -887,11 +887,13 @@ async def upload_school_logo(
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Type de fichier non autorise. Utilisez JPG, PNG, GIF ou WebP. ({e})") from e
 
-    # Save file
+    # Save file — dans le dossier uploads persistant (UPLOAD_DIR)
     filename = f"school_{school_id}_{uuid.uuid4().hex[:8]}.{ext}"
-    upload_dir = os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(__file__))), "uploads", "logos")
+    from app.core.config import get_settings
+
+    upload_dir = get_settings().upload_path / "logos"
     os.makedirs(upload_dir, exist_ok=True)
-    filepath = os.path.join(upload_dir, filename)
+    filepath = upload_dir / filename
     with open(filepath, "wb") as f:
         f.write(content)
 
