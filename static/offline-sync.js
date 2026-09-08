@@ -115,8 +115,11 @@ const OfflineSync = (() => {
         }
 
         const h = { 'Content-Type': 'application/json' };
-        const token = localStorage.getItem('yiriba_token');
-        if (token) h['Authorization'] = `Bearer ${token}`;
+        // Utiliser le token courant de app.js (refresh automatique géré par api())
+        let tok = null;
+        try { if (typeof state !== 'undefined' && state?.token) tok = state.token; } catch {}
+        if (!tok) tok = localStorage.getItem('yiriba_token');
+        if (tok) h['Authorization'] = `Bearer ${tok}`;
 
         const res = await fetch(`${window.location.origin}${endpoint}`, {
           method, headers: h, body,
@@ -260,15 +263,20 @@ const OfflineSync = (() => {
   async function submitAttendanceOrOffline(data) {
     if (navigator.onLine) {
       try {
-        const token = localStorage.getItem('yiriba_token');
-        const res = await fetch(`${window.location.origin}/api/attendance/bulk`, {
+        const res = await api('/api/attendance/bulk', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(data),
         });
         if (res.ok) return { ok: true };
-        return { ok: false, error: await res.text() };
-      } catch {}
+        // 401 déjà géré par api() (tentative de refresh) ; sinon message lisible
+        let msg = 'Erreur lors de l\'enregistrement';
+        try { const j = await res.json(); msg = (typeof j.detail === 'string') ? j.detail : msg; } catch {}
+        return { ok: false, error: msg };
+      } catch (e) {
+        // Erreur réseau réelle (fetch rejeté) : on tente la file hors-ligne
+        if (!navigator.onLine) { enqueue('attendance', 'create', data); return { ok: true, offline: true, pending: getPending().length }; }
+        return { ok: false, error: 'Erreur réseau — vérifiez votre connexion' };
+      }
     }
     enqueue('attendance', 'create', data);
     return { ok: true, offline: true, pending: getPending().length };
