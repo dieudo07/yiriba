@@ -1468,9 +1468,16 @@ function exportStudents() {
   if (studentsFilter.level) params.set('level', studentsFilter.level);
   if (studentsFilter.academic_year) params.set('academic_year', studentsFilter.academic_year);
   const url = '/api/students/export' + (params.toString() ? '?' + params.toString() : '');
-  const token = state.token || localStorage.getItem('yiriba_token') || '';
-  fetch(url, { headers: { 'Authorization': 'Bearer ' + token } })
-    .then(r => { if (!r.ok) throw new Error('Erreur export'); return r.blob(); })
+  // api() gère le refresh automatique du token avant l'échec
+  api(url)
+    .then(async r => {
+      if (!r.ok) {
+        let msg = 'Erreur export';
+        try { const j = await r.json(); if (typeof j.detail === 'string') msg = j.detail; } catch {}
+        throw new Error(msg);
+      }
+      return r.blob();
+    })
     .then(blob => {
       const a = document.createElement('a');
       a.href = URL.createObjectURL(blob);
@@ -1478,7 +1485,7 @@ function exportStudents() {
       document.body.appendChild(a); a.click(); a.remove();
       showToast('Export CSV téléchargé');
     })
-    .catch(() => showToast('Erreur lors de l\'export', 'error'));
+    .catch(e => showToast(e?.message || 'Erreur lors de l\'export', 'error'));
 }
 
 /* -- Student CRUD Modals ----------------------------------- */

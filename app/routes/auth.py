@@ -327,11 +327,20 @@ async def refresh_token(
     access = create_access_token(token_data)
     refresh = create_refresh_token(token_data)
 
-    return {
+    from fastapi.responses import JSONResponse
+    from app.core.config import get_settings as _gs
+    response = JSONResponse(content={
         "access_token": access,
         "refresh_token": refresh,
         "token_type": "bearer",
-    }
+    })
+    # Renouveler aussi le cookie HttpOnly (utilisé par les PDF en nouvel onglet)
+    response.set_cookie(
+        "yiriba_access", access,
+        max_age=_gs().JWT_ACCESS_TOKEN_EXPIRE_MINUTES * 60,
+        httponly=True, samesite="lax", path="/",
+    )
+    return response
 
 
 @router.get("/registration-config")

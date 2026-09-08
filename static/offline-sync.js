@@ -125,6 +125,27 @@ const OfflineSync = (() => {
           method, headers: h, body,
         });
 
+        if (res.status === 401) {
+          // Token expiré : tenter un refresh via api() puis réessayer une fois
+          let refreshed = false;
+          try { if (typeof tryRefresh === 'function') refreshed = await tryRefresh(); } catch {}
+          if (refreshed) {
+            let tok2 = null;
+            try { if (typeof state !== 'undefined' && state?.token) tok2 = state.token; } catch {}
+            if (tok2) h['Authorization'] = `Bearer ${tok2}`;
+            const res2 = await fetch(`${window.location.origin}${endpoint}`, {
+              method, headers: h, body,
+            });
+            if (res2.ok) { markSynced(item.id); synced++; continue; }
+            if (res2.status === 409) { markError(item.id, 'conflict: ' + (await res2.text())); failed++; continue; }
+            markError(item.id, `HTTP ${res2.status}`); failed++; continue;
+          }
+          // Pas de refresh possible : stopper la boucle (réessaiera à la reconnexion)
+          updateSyncStatus('idle');
+          syncing = false;
+          return { synced, failed };
+        }
+
         if (res.ok) {
           markSynced(item.id);
           synced++;
@@ -242,20 +263,23 @@ const OfflineSync = (() => {
   async function submitGradeOrOffline(data) {
     if (navigator.onLine) {
       try {
-        const token = localStorage.getItem('yiriba_token');
-        const res = await fetch(`${window.location.origin}/api/grades`, {
+        const res = await api('/api/grades', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
           body: JSON.stringify(data),
         });
         if (res.ok) return { ok: true };
-        // Si le serveur est up mais erreur, on ne stocke PAS hors-ligne
-        return { ok: false, error: await res.text() };
-      } catch {
-        // Erreur réseau → stocker hors-ligne
+        // Erreur serveur (401 déjà tenté en refresh par api()) : message lisible,
+        // on ne stocke PAS hors-ligne (sinon on masquerait une vraie erreur)
+        let msg = 'Erreur lors de l\'enregistrement de la note';
+        try { const j = await res.json(); msg = (typeof j.detail === 'string') ? j.detail : msg; } catch {}
+        return { ok: false, error: msg };
+      } catch (e) {
+        // Erreur réseau réelle → stocker hors-ligne UNIQUEMENT si vraiment hors ligne
+        if (!navigator.onLine) { enqueue('grade', 'create', data); return { ok: true, offline: true, pending: getPending().length }; }
+        return { ok: false, error: 'Erreur réseau — vérifiez votre connexion' };
       }
     }
-    // Hors-ligne ou échec réseau → stocker
+    // Hors-ligne → stocker
     enqueue('grade', 'create', data);
     return { ok: true, offline: true, pending: getPending().length };
   }
