@@ -5184,7 +5184,71 @@ async function suspendUser(id) {
   } catch { showToast('Erreur réseau', 'error'); }
 }
 async function viewUser(id) {
-  showToast('Fiche utilisateur en cours de développement', 'info');
+  try {
+    const res = await api('/api/admin/users?per_page=200');
+    if (!res?.ok) { showToast('Impossible de charger la fiche', 'error'); return; }
+    const j = await res.json();
+    const u = (j.users || []).find(x => x.id === id);
+    if (!u) { showToast('Utilisateur introuvable', 'error'); return; }
+    const roleLabels = { admin:'Administrateur', teacher:'Enseignant', educator:'Éducateur', secretary:'Secrétaire', comptable:'Comptable', parent:'Parent', student:'Élève' };
+    const statusLabels = { active:'Actif', pending:'En attente', suspended:'Suspendu' };
+    const badgeCls = { admin:'badge-danger', teacher:'badge-info', educator:'badge-info', secretary:'badge-info', comptable:'badge-warning', parent:'badge-active', student:'badge-inactive' };
+    const initials = (u.first_name?.[0] || '') + (u.last_name?.[0] || '');
+    showModal('Fiche utilisateur', `
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:18px">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--yiriba-vert-profond,#145c3f);color:#fff;display:grid;place-items:center;font-weight:700;font-size:20px">${initials.toUpperCase()}</div>
+        <div>
+          <div style="font-weight:700;font-size:17px">${escapeHtml(u.first_name)} ${escapeHtml(u.last_name)}</div>
+          <span class="badge ${badgeCls[u.role_type] || 'badge-info'}">${roleLabels[u.role_type] || u.role_type}</span>
+          <span class="badge ${u.status === 'active' ? 'badge-active' : 'badge-inactive'}" style="margin-left:6px">${statusLabels[u.status] || u.status}</span>
+        </div>
+      </div>
+      <div class="modal-form">
+        <div class="form-group"><label>Email</label><div style="padding:10px 12px;background:var(--surface-soft,#f7f5ef);border-radius:8px;font-size:14px">${u.email ? escapeHtml(u.email) : '<em>—</em>'}</div></div>
+        <div class="form-group"><label>Identifiant YIRIBA</label><div style="padding:10px 12px;background:var(--surface-soft,#f7f5ef);border-radius:8px;font-size:14px">${u.username ? escapeHtml(u.username) : '<em>—</em>'}</div></div>
+        <div class="form-group"><label>Téléphone</label><div style="padding:10px 12px;background:var(--surface-soft,#f7f5ef);border-radius:8px;font-size:14px">${u.phone ? escapeHtml(u.phone) : '<em>—</em>'}</div></div>
+        <div class="form-group"><label>Créé le</label><div style="padding:10px 12px;background:var(--surface-soft,#f7f5ef);border-radius:8px;font-size:14px">${u.created_at ? new Date(u.created_at).toLocaleDateString('fr-FR') : '—'}</div></div>
+      </div>
+      <div style="margin-top:14px;padding:14px;background:#fff8e1;border:1px solid #f0d47a;border-radius:10px">
+        <div style="font-weight:700;font-size:13px;margin-bottom:8px"><i class="fas fa-key"></i> Mot de passe</div>
+        <div style="font-size:13px;color:var(--texte-secondaire,#666);margin-bottom:10px">Pour des raisons de sécurité, le mot de passe n'est jamais stocké en clair. Utilisez « Réinitialiser » pour générer un nouveau mot de passe temporaire à transmettre à l'utilisateur.</div>
+        <button class="btn-add" id="btn-reset-pwd" onclick="resetUserPassword(${u.id}, '${escapeHtml(u.first_name).replace(/'/g, "\\'")}')"><i class="fas fa-rotate-right"></i> Réinitialiser le mot de passe</button>
+      </div>
+      <div class="modal-footer"><button class="btn-secondary" onclick="closeModal()">Fermer</button></div>
+    `);
+  } catch { showToast('Erreur réseau', 'error'); }
+}
+
+async function resetUserPassword(id, name) {
+  if (!confirm(`Réinitialiser le mot de passe de ${name} ?\n\nUn nouveau mot de passe temporaire sera généré et l'utilisateur devra le changer à sa prochaine connexion.`)) return;
+  const btn = document.getElementById('btn-reset-pwd');
+  if (btn) { btn.disabled = true; btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Réinitialisation...'; }
+  try {
+    const res = await api(`/api/admin/users/${id}/reset-password`, { method: 'POST' });
+    const d = await res.json().catch(() => ({}));
+    if (res?.ok && d.temp_password) {
+      showModal('Nouveau mot de passe temporaire', `
+        <div style="padding:18px;text-align:center">
+          <div style="font-size:13px;color:var(--texte-secondaire,#666);margin-bottom:12px">Transmettez ce mot de passe à <strong>${escapeHtml(name)}</strong>. Il ne sera plus affiché ensuite.</div>
+          <div id="temp-pwd-box" style="font-family:monospace;font-size:22px;font-weight:700;letter-spacing:1px;background:var(--surface-soft,#f7f5ef);padding:14px;border-radius:10px;user-select:all">${escapeHtml(d.temp_password)}</div>
+          <button class="btn-add" style="margin-top:14px;width:100%" onclick="(function(){const t=document.getElementById('temp-pwd-box').innerText; if(navigator.clipboard){navigator.clipboard.writeText(t).then(()=>showToast('Mot de passe copié !')).catch(()=>{fallbackCopy(t)});}else{fallbackCopy(t);}})()"><i class="fas fa-copy"></i> Copier le mot de passe</button>
+          <div style="font-size:12px;color:var(--texte-secondaire,#666);margin-top:10px">L'utilisateur devra le changer lors de sa prochaine connexion.</div>
+        </div>
+        <div class="modal-footer"><button class="btn-secondary" onclick="closeModal();loadUsers()">Terminé</button></div>
+      `);
+    } else {
+      showToast(d.detail || 'Erreur lors de la réinitialisation', 'error');
+      if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-rotate-right"></i> Réinitialiser le mot de passe'; }
+    }
+  } catch { showToast('Erreur réseau', 'error'); if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-rotate-right"></i> Réinitialiser le mot de passe'; } }
+}
+
+function fallbackCopy(text) {
+  const ta = document.createElement('textarea');
+  ta.value = text; ta.style.position = 'fixed'; ta.style.opacity = '0';
+  document.body.appendChild(ta); ta.select();
+  try { document.execCommand('copy'); showToast('Mot de passe copié !'); } catch { showToast('Copie impossible — sélectionnez le texte manuellement', 'error'); }
+  document.body.removeChild(ta);
 }
 function editUserRole(id, first, last) {
   showModal('Modifier l\'utilisateur', `<div class="modal-form"><div class="form-row"><div class="form-group"><label>Prénom</label><input id="u-first" value="${first}" required></div><div class="form-group"><label>Nom</label><input id="u-last" value="${last}" required></div></div><div class="form-group"><label>Nouveau rôle</label><select id="u-role" class="yiriba-select"><option value="admin">Administrateur</option><option value="teacher">Enseignant</option><option value="educator">Éducateur</option><option value="secretary">Secrétaire</option><option value="comptable">Comptable</option><option value="parent">Parent</option><option value="student">Élève</option></select></div><div class="modal-footer"><button class="btn-secondary" onclick="closeModal()">Annuler</button><button class="btn-add" onclick="submitEditUserRole(${id})"><i class="fas fa-check"></i> Enregistrer</button></div></div>`);

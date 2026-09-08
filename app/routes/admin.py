@@ -499,6 +499,45 @@ async def validate_user(
     return {"id": target.id, "status": "active", "message": "Compte validé avec succès"}
 
 
+@router.post("/users/{user_id}/reset-password")
+async def reset_user_password(
+    user_id: int,
+    user: User = Depends(require_permission("user.update")),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Réinitialise le mot de passe d'un utilisateur de l'école.
+
+    Génère un mot de passe temporaire, le renvoie en clair UNE SEULE FOIS
+    (à transmettre à l'utilisateur), force le changement à la prochaine
+    connexion et journalise l'action dans l'audit.
+    """
+    school_id = get_school_id(user)
+    await require_write_access(db, school_id)
+
+    target = (await db.execute(
+        select(User).where(User.id == user_id, User.school_id == school_id)
+    )).scalar_one_or_none()
+    if not target:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+
+    from app.services.student_service import generate_temp_password
+    temp_password = generate_temp_password()
+    target.password_hash = hash_password(temp_password)
+    target.must_change_password = True
+    await db.flush()
+
+    from app.services.audit_service import safe_audit
+    await safe_audit(db, school_id=school_id, user_id=user.id, action="user.password_reset", resource="user", resource_id=target.id, details={"email": target.email})
+
+    return {
+        "id": target.id,
+        "email": target.email,
+        "username": target.username,
+        "temp_password": temp_password,
+        "message": "Mot de passe réinitialisé. À transmettre en sécurité — il ne sera plus affiché.",
+    }
+
+
 @router.put("/users/{user_id}/suspend")
 async def suspend_user(
     user_id: int,
