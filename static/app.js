@@ -969,7 +969,7 @@ async function loadDashboard() {
     const [s, cl, t, p, a, pay, audit, sub] = await Promise.all([
       api('/api/students?per_page=1').catch(()=>null),
       api('/api/classes?per_page=1').catch(()=>null),
-      api('/api/admin/users?per_page=1').catch(()=>null),
+      api('/api/admin/users?per_page=1&role_type=teacher').catch(()=>null),
       api('/api/attendance?per_page=1').catch(()=>null),
       api('/api/attendance?status=absent&per_page=1').catch(()=>null),
       api('/api/payments?per_page=1').catch(()=>null),
