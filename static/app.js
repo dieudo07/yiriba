@@ -1968,6 +1968,7 @@ async function viewStudent(id) {
         </div>
         ${disciplineHTML}
         ${st === 'ACTIVE' ? `<div style="border-top:1px solid var(--border);padding-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+          <button class="btn-secondary" onclick="closeModal();showEnrollModal(${s.id}, '${escapeHtml(s.first_name).replace(/'/g, "\\'")} ${escapeHtml(s.last_name).replace(/'/g, "\\'")}')"><i class="fas fa-graduation-cap"></i> Inscrire / Changer de classe</button>
           <button class="btn-secondary" onclick="closeModal();showTransferModal(${s.id})"><i class="fas fa-arrow-right-arrow-left"></i> Transférer</button>
           <button style="background:#fce4ec;color:var(--yiriba-rouge);border:1px solid var(--yiriba-rouge);border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:600" onclick="closeModal();showDisciplineModal(${s.id}, '${s.first_name} ${s.last_name}')"><i class="fas fa-exclamation-triangle" style="margin-right:4px"></i> Signaler un incident</button>
         </div>` : ''}
@@ -2015,6 +2016,42 @@ async function removeParentFromStudent(studentId, parentUserId, parentName) {
     const res = await api(`/api/students/${studentId}/parents/${parentUserId}`, { method: 'DELETE' });
     if (res?.ok || res?.status === 204) { showToast('Responsable retiré'); viewStudent(studentId); }
     else { const d = await res.json().catch(() => ({})); showToast(d.detail || 'Erreur', 'error'); }
+  } catch { showToast('Erreur réseau', 'error'); }
+}
+
+async function showEnrollModal(studentId, name) {
+  // Inscrire un élève (non inscrit) dans une classe pour l'année courante
+  const cRes = await api('/api/classes?per_page=200');
+  const classes = cRes?.ok ? (await cRes.json()).classes || [] : [];
+  if (!classes.length) { showToast('Créez d\'abord une classe (Scolarité → Classes)', 'error'); return; }
+  showModal('Inscrire dans une classe', `
+    <div style="font-size:13px;color:var(--texte-secondaire,#666);margin-bottom:12px">Élève : <strong>${escapeHtml(name)}</strong> — choisissez la classe d'inscription pour l'année scolaire en cours.</div>
+    <div class="modal-form">
+      <div class="form-group"><label>Classe</label><select id="en-class">
+        ${classes.map(cl => `<option value="${cl.id}">${escapeHtml(cl.name)}${cl.academic_year ? ' — ' + escapeHtml(cl.academic_year) : ''}</option>`).join('')}
+      </select></div>
+      <div class="form-group"><label style="display:flex;align-items:center;gap:8px;font-weight:400"><input type="checkbox" id="en-repeater" style="width:auto"> Élève redoublant</label></div>
+      <div class="modal-footer">
+        <button class="btn-secondary" onclick="closeModal()">Annuler</button>
+        <button class="btn-add" onclick="submitEnroll(${studentId})"><i class="fas fa-graduation-cap"></i> Inscrire</button>
+      </div>
+    </div>
+  `);
+}
+
+async function submitEnroll(studentId) {
+  const classId = parseInt(document.getElementById('en-class')?.value);
+  if (!classId) { showToast('Choisissez une classe', 'error'); return; }
+  const isRepeater = document.getElementById('en-repeater')?.checked || false;
+  try {
+    const res = await api('/api/enrollments', { method: 'POST', headers: {'Content-Type':'application/json'}, body: JSON.stringify({ student_id: studentId, class_id: classId, is_repeater: isRepeater }) });
+    const d = await res.json().catch(() => ({}));
+    if (res?.ok || res?.status === 201) { closeModal(); showToast('Élève inscrit avec succès'); loadStudents(); }
+    else {
+      let errMsg = d.detail || 'Erreur lors de l\'inscription';
+      if (Array.isArray(errMsg)) errMsg = errMsg.map(e => e.msg || '').join(' • ');
+      showToast(errMsg, 'error');
+    }
   } catch { showToast('Erreur réseau', 'error'); }
 }
 
@@ -5167,7 +5204,7 @@ async function loadUsers() {
     ${users.length > 0 ? `<div class="yiriba-table-wrap"><table class="yiriba-table"><thead><tr><th>Nom</th><th>Email / Identifiant</th><th>Rôle</th><th>Statut</th><th style="text-align:right">Actions</th></tr></thead><tbody>${users.map(u => {
       const [sl,sc] = sm[u.status] || sm[(u.status||'').toLowerCase()] || [u.status,'badge-inactive'];
       const loginId = u.username || u.email || '—';
-      return `<tr><td style="font-weight:600">${u.first_name} ${u.last_name}</td><td><div>${u.email || '—'}</div>${u.username ? '<div style="font-size:11px;color:var(--yiriba-vert);font-weight:600">'+u.username+'</div>' : ''}</td><td><span class="badge ${rc[u.role_type]||'badge-inactive'}">${rn[u.role_type]||u.role_type}</span></td><td><span class="badge ${sc}"><span class="badge-dot"></span>${sl}</span></td><td><div class="table-actions" style="justify-content:flex-end">${(u.status||'').toLowerCase()==='pending'?`<button title="Activer" onclick="activateUser(${u.id})"><i class="fas fa-check"></i></button>`:''}<button title="Voir" onclick="viewUser(${u.id})"><i class="fas fa-eye"></i></button><button title="Modifier" onclick="editUserRole(${u.id},'${u.first_name}','${u.last_name}')"><i class="fas fa-pen"></i></button>${(u.status||'').toLowerCase()!=='suspended'?`<button title="Suspendre" onclick="suspendUser(${u.id})"><i class="fas fa-ban"></i></button>`:''}</div></td></tr>`;
+      return `<tr><td style="font-weight:600">${u.first_name} ${u.last_name}</td><td><div>${u.email || '—'}</div>${u.username ? '<div style="font-size:11px;color:var(--yiriba-vert);font-weight:600">'+u.username+'</div>' : ''}</td><td><span class="badge ${rc[u.role_type]||'badge-inactive'}">${rn[u.role_type]||u.role_type}</span></td><td><span class="badge ${sc}"><span class="badge-dot"></span>${sl}</span></td><td><div class="table-actions" style="justify-content:flex-end">${(u.status||'').toLowerCase()==='pending'?`<button title="Activer" onclick="activateUser(${u.id})"><i class="fas fa-check"></i></button>`:''}<button title="Voir" onclick="viewUser(${u.id})"><i class="fas fa-eye"></i></button><button title="Modifier" onclick="editUserRole(${u.id},'${u.first_name}','${u.last_name}')"><i class="fas fa-pen"></i></button>${(u.status||'').toLowerCase()!=='suspended'?`<button title="Suspendre" onclick="suspendUser(${u.id})"><i class="fas fa-ban"></i></button>`:''}<button title="Supprimer" style="color:var(--yiriba-rouge,#c62828)" onclick="deleteUser(${u.id},'${(u.first_name + ' ' + u.last_name).replace(/'/g, "\\\'")}')"><i class="fas fa-trash"></i></button></div></td></tr>`;
     }).join('')}</tbody></table></div>` : `<div class="card section-card"><div class="empty"><div class="empty-icon"><i class="fas fa-users-gear"></i></div><h4>Aucun utilisateur</h4><p>Commencez par ajouter des utilisateurs à votre établissement.</p><span class="link" onclick="showAddUserModal()"><i class="fas fa-plus"></i> Ajouter un utilisateur →</span></div></div>`}
   `;
 }
@@ -5217,6 +5254,12 @@ async function viewUser(id) {
         <div style="font-size:13px;color:var(--texte-secondaire,#666);margin-bottom:10px">Pour des raisons de sécurité, le mot de passe n'est jamais stocké en clair. Utilisez « Réinitialiser » pour générer un nouveau mot de passe temporaire à transmettre à l'utilisateur.</div>
         <button class="btn-add" id="btn-reset-pwd" onclick="resetUserPassword(${u.id}, '${escapeHtml(u.first_name).replace(/'/g, "\\'")}')"><i class="fas fa-rotate-right"></i> Réinitialiser le mot de passe</button>
       </div>
+      ${u.id !== state.user?.id ? `
+      <div style="margin-top:12px;padding:14px;background:#fce4ec;border:1px solid var(--yiriba-rouge,#c62828);border-radius:10px">
+        <div style="font-weight:700;font-size:13px;margin-bottom:6px;color:var(--yiriba-rouge,#c62828)"><i class="fas fa-triangle-exclamation"></i> Zone dangereuse</div>
+        <div style="font-size:13px;color:var(--texte-secondaire,#666);margin-bottom:10px">La suppression du compte est définitive et ne peut pas être annulée.</div>
+        <button style="background:var(--yiriba-rouge,#c62828);color:#fff;border:none;border-radius:8px;padding:8px 14px;cursor:pointer;font-size:13px;font-weight:600" onclick="closeModal();deleteUser(${u.id}, '${escapeHtml(u.first_name).replace(/'/g, "\\'")} ${escapeHtml(u.last_name).replace(/'/g, "\\'")}')"><i class="fas fa-trash"></i> Supprimer ce compte</button>
+      </div>` : ''}
       <div class="modal-footer"><button class="btn-secondary" onclick="closeModal()">Fermer</button></div>
     `);
   } catch { showToast('Erreur réseau', 'error'); }
@@ -5244,6 +5287,20 @@ async function resetUserPassword(id, name) {
       if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-rotate-right"></i> Réinitialiser le mot de passe'; }
     }
   } catch { showToast('Erreur réseau', 'error'); if (btn) { btn.disabled = false; btn.innerHTML = '<i class="fas fa-rotate-right"></i> Réinitialiser le mot de passe'; } }
+}
+
+async function deleteUser(id, name) {
+  if (!confirm(`Supprimer définitivement le compte de ${name} ?\n\nCette action est irréversible.`)) return;
+  try {
+    const res = await api(`/api/admin/users/${id}`, { method: 'DELETE' });
+    const d = await res.json().catch(() => ({}));
+    if (res?.ok) { showToast(d.message || 'Compte supprimé'); loadUsers(); }
+    else {
+      let errMsg = d.detail || 'Erreur lors de la suppression';
+      if (Array.isArray(errMsg)) errMsg = errMsg.map(e => e.msg || '').join(' • ');
+      showToast(errMsg, 'error');
+    }
+  } catch { showToast('Erreur réseau', 'error'); }
 }
 
 function fallbackCopy(text) {

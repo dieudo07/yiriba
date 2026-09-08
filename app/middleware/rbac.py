@@ -248,14 +248,14 @@ class OwnershipFilter:
 # ── Decorator for service-level checks ────────────────────────────
 
 
-def require_last_admin(db: AsyncSession, school_id: int, user_id: int) -> None:
+async def require_last_admin(db: AsyncSession, school_id: int, user_id: int) -> None:
     """Raise if deactivating the last admin with 'user.validate' permission.
 
     Called in service layer before deactivating a user.
     """
     from sqlalchemy import func as sqlfunc
 
-    result = db.execute(
+    result = await db.execute(
         select(sqlfunc.count()).select_from(User).join(
             RolePermission, RolePermission.role_id == User.role_id
         ).join(

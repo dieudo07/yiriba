@@ -561,7 +561,7 @@ async def suspend_user(
 
     # Prevent suspending the last admin
     from app.middleware.rbac import require_last_admin
-    require_last_admin(db, school_id, user_id)
+    await require_last_admin(db, school_id, user_id)
 
     target.status = UserStatus.SUSPENDED
     await db.flush()
@@ -572,6 +572,44 @@ async def suspend_user(
 
 
 # --- Roles Management ---
+
+
+@router.delete("/users/{user_id}", status_code=200)
+async def delete_user(
+    user_id: int,
+    user: User = Depends(require_permission("user.delete")),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Supprime définitivement un compte utilisateur de l'école.
+
+    Protection : impossible de se supprimer soi-même ni de supprimer le
+    dernier administrateur actif de l'école. Journalisé dans l'audit.
+    """
+    school_id = get_school_id(user)
+    await require_write_access(db, school_id)
+
+    if user_id == user.id:
+        raise HTTPException(status_code=400, detail="Vous ne pouvez pas supprimer votre propre compte")
+
+    target = (await db.execute(
+        select(User).where(User.id == user_id, User.school_id == school_id)
+    )).scalar_one_or_none()
+    if not target:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+
+    # Le dernier admin ne peut pas être supprimé
+    from app.middleware.rbac import require_last_admin
+    await require_last_admin(db, school_id, user_id)
+
+    email = target.email
+    role = target.role_type.value if hasattr(target.role_type, "value") else str(target.role_type)
+    await db.delete(target)
+    await db.flush()
+
+    from app.services.audit_service import safe_audit
+    await safe_audit(db, school_id=school_id, user_id=user.id, action="user.delete", resource="user", resource_id=user_id, details={"email": email, "role_type": role})
+
+    return {"id": user_id, "message": f"Compte de {email or role} supprimé définitivement"}
 
 
 @router.get("/roles")
