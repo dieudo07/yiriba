@@ -5272,6 +5272,11 @@ async function submitCreateUser() {
   }
   if (!data.first_name || !data.last_name) { showToast('Prénom et nom requis', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Créer le compte'; return; }
   if (role !== 'student' && !data.email) { showToast('Email requis pour ce rôle', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Créer le compte'; return; }
+  if (data.email && !/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(data.email)) { showToast('Adresse email invalide', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Créer le compte'; return; }
+  if (data.phone) {
+    if (data.phone.includes('@')) { showToast('Le champ Téléphone doit contenir un numéro, pas un email. Mettez l\'email dans le champ Email.', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Créer le compte'; return; }
+    if (data.phone.length > 30) { showToast('Numéro de téléphone trop long (30 caractères max)', 'error'); btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Créer le compte'; return; }
+  }
   try {
     const res = await api('/api/admin/users', { method: 'POST', body: JSON.stringify(data) });
     const d = await res.json().catch(() => ({}));
@@ -5282,7 +5287,16 @@ async function submitCreateUser() {
       alert(msg);
       closeModal(); loadUsers();
     } else {
-      showToast(d.detail || 'Erreur lors de la création', 'error');
+      // FastAPI renvoie detail soit en string, soit en liste d'erreurs de validation
+      let errMsg = d.detail || 'Erreur lors de la création';
+      if (Array.isArray(errMsg)) {
+        errMsg = errMsg.map(e => {
+          const field = (e.loc || [])[1] || '';
+          const labels = { email: 'Email', phone: 'Téléphone', first_name: 'Prénom', last_name: 'Nom', password: 'Mot de passe', role_type: 'Rôle' };
+          return `${labels[field] || field} : ${e.msg || 'valeur invalide'}`;
+        }).join(' • ');
+      }
+      showToast(errMsg, 'error');
     }
   } catch { showToast('Erreur réseau', 'error'); }
   btn.disabled = false; btn.innerHTML = '<i class="fas fa-plus"></i> Créer le compte';
