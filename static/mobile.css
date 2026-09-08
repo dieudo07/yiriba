@@ -412,10 +412,12 @@
 }
 
 /* ── Offline Bar ───────────────────────────────────────── */
-.offline-bar.visible { position: fixed; top: 0; left: 0; right: 0; z-index: 500; border-radius: 0; }
+/* Le bandeau est déjà flottant en bas via style.css — rien à écraser ici,
+   on harmonise juste la position mobile au-dessus de la bottom-nav. */
+.offline-bar.visible { z-index: 1500; }
 
 @media (max-width: 640px) {
-  .offline-bar.visible { top: auto; bottom: 64px; border-radius: 0; }
+  .offline-bar.visible { bottom: calc(74px + max(0px, env(safe-area-inset-bottom))); }
 }
 
 /* ── Reduce Motion ─────────────────────────────────────── */
