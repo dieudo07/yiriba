@@ -207,6 +207,49 @@ async def create_obligation(
     return {"id": obligation.id, "name": obligation.name, "amount": obligation.amount, "category": obligation.category}
 
 
+@router.delete("/obligations/{obligation_id}", status_code=200)
+async def delete_obligation(
+    obligation_id: int,
+    user: User = Depends(require_permission("payment.create")),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Supprime une obligation — uniquement si aucun paiement n'y est lié."""
+    school_id = get_school_id(user)
+    await require_write_access(db, school_id)
+
+    obligation = (await db.execute(
+        select(FeeObligation).where(FeeObligation.id == obligation_id, FeeObligation.school_id == school_id)
+    )).scalar_one_or_none()
+    if not obligation:
+        raise HTTPException(status_code=404, detail="Obligation introuvable")
+
+    # Interdire la suppression si des paiements sont liés (traçabilité financière)
+    paid = (await db.execute(
+        select(func.count(Payment.id)).where(Payment.obligation_id == obligation_id)
+    )).scalar() or 0
+    if paid > 0:
+        raise HTTPException(
+            status_code=400,
+            detail=f"Impossible de supprimer : {paid} paiement(s) lié(s) à cette obligation. Annulez d'abord les paiements.",
+        )
+
+    # Supprimer les tranches (échéancier) liées
+    insts = (await db.execute(
+        select(FeeInstallment).where(FeeInstallment.obligation_id == obligation_id)
+    )).scalars().all()
+    for inst in insts:
+        await db.delete(inst)
+    await db.delete(obligation)
+
+    from app.services.audit_service import safe_audit
+    await safe_audit(
+        db, school_id=school_id, user_id=user.id, action="payment.obligation.delete",
+        resource="fee_obligation", resource_id=obligation_id,
+        details={"name": obligation.name, "amount": obligation.amount},
+    )
+    return {"deleted": True, "id": obligation_id}
+
+
 @router.post("/obligations/generate")
 async def generate_obligations(
     data: GenerateObligationsRequest,

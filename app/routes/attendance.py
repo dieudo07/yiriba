@@ -121,6 +121,32 @@ async def list_attendance(
     }
 
 
+@router.delete("/{attendance_id}", status_code=200)
+async def delete_attendance(
+    attendance_id: int,
+    user: User = Depends(require_permission("attendance.create")),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Supprime un pointage de présence (multi-tenant strict)."""
+    school_id = get_school_id(user)
+    await require_write_access(db, school_id)
+
+    att = (await db.execute(
+        select(Attendance).where(Attendance.id == attendance_id, Attendance.school_id == school_id)
+    )).scalar_one_or_none()
+    if not att:
+        raise HTTPException(status_code=404, detail="Pointage introuvable")
+
+    await db.delete(att)
+    from app.services.audit_service import safe_audit
+    await safe_audit(
+        db, school_id=school_id, user_id=user.id, action="attendance.delete",
+        resource="attendance", resource_id=attendance_id,
+        details={"student_id": att.student_id, "date": str(att.date), "status": att.status.value if hasattr(att.status, 'value') else str(att.status)},
+    )
+    return {"deleted": True, "id": attendance_id}
+
+
 @router.post("", status_code=201)
 async def mark_attendance(
     data: AttendanceMark,

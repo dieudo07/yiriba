@@ -108,6 +108,15 @@ async function loadTeacherAttendanceStudents() {
   }
 }
 
+/* Marquer le statut d'un élève lors de l'appel (présent/absent/retard/excusé). */
+function setAttendance(btn, status) {
+  const row = btn.closest('.roll-call-row');
+  if (!row) return;
+  row.dataset.status = status;
+  row.querySelectorAll('.roll-btn').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+}
+
 function filterRosterRows(q) {
   q = (q || '').toLowerCase();
   document.querySelectorAll('#roll-call-grid .roll-call-row').forEach(row => {

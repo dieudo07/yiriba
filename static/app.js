@@ -2977,7 +2977,7 @@ function filterGrades() {
     const periodLabel = per ? per.name : (e.period || '—');
     const typeMap = {devoir:'Devoir',devoir1:'Devoir 1',devoir2:'Devoir 2',composition:'Composition',controle:'Contrôle',examen:'Examen'};
     const typeLabel = typeMap[e.assessment_type] || escapeHtml(e.assessment_type);
-    return `<tr><td style="font-weight:600">${escapeHtml(e.name)}</td><td>${escapeHtml(cls?.name) || '—'}</td><td>${escapeHtml(sub?.name) || '—'}</td><td><span class="badge badge-info">${escapeHtml(typeLabel)}</span></td><td><span style="font-size:12px">${escapeHtml(periodLabel)}</span></td><td>/<span>${e.max_grade || 20}</span></td><td style="font-weight:600">x${e.coefficient || 1}</td><td><div class="table-actions" style="justify-content:flex-end"><button title="Saisir" onclick="startGradeEntry(${e.id})"><i class="fas fa-pen"></i></button></div></td></tr>`;
+    return `<tr><td style="font-weight:600">${escapeHtml(e.name)}</td><td>${escapeHtml(cls?.name) || '—'}</td><td>${escapeHtml(sub?.name) || '—'}</td><td><span class="badge badge-info">${escapeHtml(typeLabel)}</span></td><td><span style="font-size:12px">${escapeHtml(periodLabel)}</span></td><td>/<span>${e.max_grade || 20}</span></td><td style="font-weight:600">x${e.coefficient || 1}</td><td><div class="table-actions" style="justify-content:flex-end"><button title="Saisir" onclick="openGradeGrid(${e.id})"><i class="fas fa-pen"></i></button></div></td></tr>`;
   }).join('');
 }
 
@@ -5218,7 +5218,7 @@ async function activateUser(id) {
 async function suspendUser(id) {
   if (!confirm('Suspendre ce compte ? Il ne pourra plus se connecter.')) return;
   try {
-    const res = await api(`/api/admin/users/${id}/suspend`, { method: 'POST' });
+    const res = await api(`/api/admin/users/${id}/suspend`, { method: 'PUT' });
     if (res?.ok || res?.status === 200) { showToast('Compte suspendu'); loadUsers(); }
     else { showToast('Erreur', 'error'); }
   } catch { showToast('Erreur réseau', 'error'); }

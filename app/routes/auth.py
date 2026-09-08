@@ -137,9 +137,15 @@ async def login(
     users_found = (await db.execute(query)).scalars().all()
     if len(users_found) == 0:
         raise HTTPException(status_code=401, detail="Identifiant ou mot de passe incorrect")
-    if len(users_found) > 1:
-        # Multiple users with same email in different schools — need school_slug
-        if not body.school_slug:
+    if len(users_found) > 1 and not body.school_slug:
+        # Plusieurs comptes partagent cet identifiant (ex: YRB-000001 existe
+        # dans plusieurs écoles — le compteur d'identifiants élèves est par
+        # école). On lève l'ambiguïté en testant le mot de passe contre chaque
+        # candidat ; on ne poursuit que si UN SEUL correspond.
+        matching = [u for u in users_found if u.password_hash and verify_password(body.password, u.password_hash)]
+        if len(matching) == 1:
+            users_found = [matching[0]]
+        else:
             raise HTTPException(status_code=400, detail="Plusieurs comptes existent avec cet identifiant. Veuillez préciser le sigle de l'école.")
     user = users_found[0]
 
