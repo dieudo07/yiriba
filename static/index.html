@@ -194,6 +194,13 @@
               <input type="text" id="reg-school-city" placeholder="Ouagadougou">
             </div>
           </div>
+          <div class="form-group">
+            <label>Sigle de l'école <span style="color:var(--texte-secondaire);font-weight:400">(optionnel — servira de préfixe aux identifiants élèves, ex: CYA-000001)</span></label>
+            <div class="auth-input-wrap">
+              <i class="fas fa-id-badge auth-input-icon"></i>
+              <input type="text" id="reg-school-short" maxlength="5" placeholder="Ex: CYA" style="text-transform:uppercase">
+            </div>
+          </div>
           <button type="button" class="auth-submit-btn" onclick="regNextStep(2)" style="margin-top:8px">
             Continuer <i class="fas fa-arrow-right" style="margin-left:6px"></i>
           </button>
@@ -522,7 +529,7 @@
 </div>
 <script src="/static/i18n.js?v=71"></script>
 <script src="/static/offline-sync.js?v=73"></script>  <script src="/static/admin_nav.js?v=2"></script>
-  <script src="/static/app.js?v=120"></script>
+  <script src="/static/app.js?v=121"></script>
 <script src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit" async defer></script>
 <script src="/static/teacher_portal.js?v=72"></script>
 <script src="/static/parent_portal.js?v=79"></script>

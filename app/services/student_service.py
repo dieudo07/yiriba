@@ -330,28 +330,95 @@ async def _generate_matricule(db: AsyncSession, school_id: int) -> str:
     return f"{prefix}{count:04d}"
 
 
-async def generate_yiriba_id(db: AsyncSession, school_id: int) -> str:
-    """Generate a unique YIRIBA login ID for a student.
+async def ensure_school_prefix(db: AsyncSession, school) -> str:
+    """Garantit un sigle unique GLOBALEMENT pour l'école (colonne School.short_name).
 
-    Format: YRB-XXXXXX (e.g. YRB-000001)
-    Unique within the school.
+    Ce sigle sert de préfixe aux identifiants de connexion élèves
+    (format SIGLE-XXXXXX), ce qui rend les identifiants uniques dans
+    toute la base — plus de collision entre écoles.
+
+    Règles :
+    - sigle existant valide (2-5 alphanumériques) -> conservé s'il n'est
+      pas pris par une autre école (sinon suffixé par un chiffre)
+    - sinon dérivé du nom de l'école (initiales/lettres) -> ex: "Collège
+      Yiriba Alternatif" -> CYA
+    - repli : S<id> (ex: S12) si le nom ne permet rien
     """
-    # Count existing YRB- IDs for this school to find the next number
+    import re as _re
+    import unicodedata as _ud
+
+    from app.models.school import School
+
+    def _sanitize(text: str) -> str:
+        text = _ud.normalize('NFKD', text or '')
+        text = text.encode('ascii', 'ignore').decode('ascii')
+        text = _re.sub(r'[^A-Za-z0-9]', '', text).upper()
+        return text
+
+    async def _prefix_taken(candidate: str) -> bool:
+        row = await db.execute(
+            select(School.id).where(School.short_name == candidate, School.id != school.id)
+        )
+        return row.scalar_one_or_none() is not None
+
+    current = (school.short_name or '').strip()
+    candidate = _sanitize(current)
+    if not (2 <= len(candidate) <= 5) or await _prefix_taken(candidate):
+        # Dérivation depuis le nom : initiales des mots, puis lettres du nom
+        words = _re.findall(r"[A-Za-z0-9]+", _ud.normalize('NFKD', school.name or '').encode('ascii', 'ignore').decode('ascii'))
+        initials = ''.join(w[0] for w in words if w).upper()
+        for base in [initials, _sanitize(school.name)[:4], _sanitize(school.name)[:3]]:
+            if len(base) >= 2:
+                candidate = base[:5]
+                break
+        else:
+            candidate = f"S{school.id}"
+        # Dédoublonnage global : CYA pris -> CYA2, CYA3...
+        n = 1
+        while await _prefix_taken(candidate):
+            n += 1
+            suffix = str(n)
+            candidate = (base[:5 - len(suffix)] if len(base) >= 2 else f"S{school.id}") + suffix
+            if n > 99:  # sécurité théorique
+                candidate = f"S{school.id}"
+                if not await _prefix_taken(candidate):
+                    break
+    school.short_name = candidate
+    await db.flush()
+    return candidate
+
+
+async def generate_yiriba_id(db: AsyncSession, school_id: int) -> str:
+    """Generate a globally-unique student login ID.
+
+    Format: SIGLE-XXXXXX (e.g. CYA-000001) où SIGLE est le sigle unique
+    de l'école. L'unicité est vérifiée dans TOUTE la base (plus de
+    collisions entre écoles, donc login sans ambiguïté).
+    """
+    from app.models.school import School
+
+    school = (await db.execute(
+        select(School).where(School.id == school_id)
+    )).scalar_one_or_none()
+    if school is None:
+        raise ValueError(f"École {school_id} introuvable")
+    prefix = await ensure_school_prefix(db, school)
+
+    # Compter les identifiants du même préfixe pour trouver le suivant
     result = await db.execute(
         select(func.count()).select_from(User).where(
-            User.school_id == school_id,
-            User.username.like("YRB-%"),
+            User.username.like(f"{prefix}-%"),
         )
     )
     count = (result.scalar() or 0) + 1
-    yiriba_id = f"YRB-{count:06d}"
+    yiriba_id = f"{prefix}-{count:06d}"
 
-    # Safety: ensure uniqueness
+    # Safety: unicité GLOBALE (sans filtre école)
     while (await db.execute(
-        select(User.id).where(User.school_id == school_id, User.username == yiriba_id)
+        select(User.id).where(User.username == yiriba_id)
     )).scalar_one_or_none() is not None:
         count += 1
-        yiriba_id = f"YRB-{count:06d}"
+        yiriba_id = f"{prefix}-{count:06d}"
 
     return yiriba_id
 

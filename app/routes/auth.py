@@ -43,6 +43,7 @@ class LoginRequest(BaseModel):
 class RegisterSchoolRequest(BaseModel):
     # ── École ─────────────────────────────────────────────────
     school_name: str = Field(..., min_length=2, max_length=200)
+    school_short_name: str | None = Field(default=None, max_length=5)  # Sigle unique (ex: CYA) — préfixe des identifiants élèves
     school_type: str = Field(default="college", pattern=r"^(maternelle|primaire|college|lycee|complexe|autre)$")
     school_city: str | None = Field(default=None, max_length=100)
     # ── Directeur ─────────────────────────────────────────────
@@ -115,12 +116,23 @@ async def login(
     """
     ip = request.client.host if request.client else "unknown"
 
+    import re as _re
+
     identifier = body.email.strip()
-    is_yiriba_id = identifier.upper().startswith("YRB-") or identifier.upper().startswith("YIRIBA-")
+    # Identifiant YIRIBA : ancien format (YRB-/YIRIBA-) ou nouveau format
+    # par école SIGLE-XXXXXX (ex: CYA-000001). Détection générique :
+    # LETTRES-CHIFFRES.
+    up = identifier.upper()
+    is_yiriba_id = (
+        up.startswith("YRB-")
+        or up.startswith("YIRIBA-")
+        or _re.match(r"^[A-Z0-9]{2,5}-\d{4,8}$", up) is not None
+    )
 
     if is_yiriba_id:
-        # Login by YIRIBA ID (students)
-        query = select(User).where(User.username == identifier.upper())
+        # Login by YIRIBA ID (students). Le préfixe école rend l'identifiant
+        # globalement unique ; on cherche sans filtre école.
+        query = select(User).where(User.username == up)
     else:
         # Login by email
         query = select(User).where(User.email == identifier.lower())
@@ -490,6 +502,22 @@ async def register_school(
         city=body.school_city,
     )
     db.add(school)
+    await db.flush()
+
+    # Sigle unique global (préfixe des identifiants élèves) : celui fourni
+    # s'il est libre, sinon dérivé/dédoublonné automatiquement.
+    from app.services.student_service import ensure_school_prefix
+    if body.school_short_name:
+        school.short_name = body.school_short_name.strip().upper()[:5] or None
+    if not school.short_name:
+        await ensure_school_prefix(db, school)
+    else:
+        # Vérifier l'unicité globale du sigle fourni
+        taken = (await db.execute(
+            select(School.id).where(School.short_name == school.short_name, School.id != school.id)
+        )).scalar_one_or_none()
+        if taken is not None:
+            await ensure_school_prefix(db, school)  # dédoublonne
     await db.flush()
 
     # ── Create admin user ────────────────────────────────────

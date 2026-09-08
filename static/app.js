@@ -423,6 +423,7 @@ async function regSubmit() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         school_name: document.getElementById('reg-school-name').value.trim(),
+        school_short_name: (document.getElementById('reg-school-short')?.value.trim() || '').toUpperCase() || null,
         school_type: document.getElementById('reg-school-type').value,
         school_city: document.getElementById('reg-school-city').value.trim() || null,
         admin_first_name: firstName,
