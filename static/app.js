@@ -6453,7 +6453,25 @@ function timeAgo(dateStr) {
 }
 
 /* -- Utils ---------------------------------------------------- */
-function showModal(t,h){document.getElementById('modal-title').textContent=t;document.getElementById('modal-body').innerHTML=h;document.getElementById('modal-overlay').style.display='flex'}
+function showModal(t,h,onSave){document.getElementById('modal-title').textContent=t;document.getElementById('modal-body').innerHTML=h;
+  // Pied de modal : soit bouton de validation fourni (callback), soit boutons par défaut (Annuler seul)
+  let foot = document.getElementById('modal-footer');
+  if (!foot) {
+    foot = document.createElement('div');
+    foot.id = 'modal-footer';
+    foot.className = 'modal-footer';
+    document.querySelector('#modal-overlay .modal').appendChild(foot);
+  }
+  if (typeof onSave === 'function') {
+    foot.style.display = 'flex';
+    foot.innerHTML = `<button class="btn-secondary" onclick="closeModal()">Annuler</button><button class="btn-add" id="modal-save-btn"><i class="fas fa-check"></i> Valider</button>`;
+    document.getElementById('modal-save-btn').onclick = onSave;
+  } else {
+    foot.style.display = 'none';
+    foot.innerHTML = '';
+  }
+  document.getElementById('modal-overlay').style.display='flex'
+}
 /* ==============================================================
    CONFIGURATION ACADEMIQUE
    ============================================================== */
