@@ -824,6 +824,9 @@ function loadPage(page) {
   window._currentPage = page;  // Track current page for resize handler
   setActiveNav(page);
   updateFab(page);
+  // Bottom-nav dynamique : régénérée si le portail courant ne correspond
+  // pas aux items affichés (mobile-first pour tous les portails)
+  if (typeof renderBottomNav === 'function') renderBottomNav();
   // Portal-specific pages
   const portalPages = {
     // Teacher portal
@@ -7590,12 +7593,80 @@ const FAB_ACTIONS_BY_PAGE = {
   'p-messages': [
     { icon: 'fa-envelope', label: 'Nouveau message', fn: () => showNewMessageModal() },
   ],
+  // ── Portail Élève ──
+  's-messages': [
+    { icon: 'fa-envelope', label: 'Nouveau message', fn: () => showNewMessageModal() },
+  ],
+  // ── Portail Comptable ──
+  'c-dashboard': [
+    { icon: 'fa-money-bill-wave', label: 'Enregistrer un paiement', fn: () => showPaymentModal() },
+  ],
+  debtors: [
+    { icon: 'fa-bullhorn', label: 'Envoyer une relance', fn: () => loadPage('debtors') },
+  ],
 };
 
 function _fabEscape(v) {
   return String(v == null ? '' : v)
     .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
     .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+// ── Bottom nav dynamique selon le portail ─────────────────────
+// La bottom-nav HTML statique couvre le portail Admin. Pour les autres
+// portails (parent, élève, comptable, enseignant), on la régénère avec
+// les pages du portail courant — logique mobile-first partout.
+const BOTTOM_NAV_BY_PORTAL = {
+  admin: [
+    { page: 'dashboard', icon: 'fa-house', label: 'Accueil' },
+    { page: 'students', icon: 'fa-user-graduate', label: 'Élèves' },
+    { page: 'payments', icon: 'fa-money-bill-wave', label: 'Paiements' },
+    { page: 'bulletins', icon: 'fa-file-lines', label: 'Bulletins' },
+    { page: 'settings', icon: 'fa-gear', label: 'Réglages' },
+  ],
+  parent: [
+    { page: 'p-dashboard', icon: 'fa-house', label: 'Accueil' },
+    { page: 'p-grades', icon: 'fa-pen-fancy', label: 'Résultats' },
+    { page: 'p-attendance', icon: 'fa-clipboard-check', label: 'Assiduité' },
+    { page: 'p-payments', icon: 'fa-money-bill-wave', label: 'Scolarité' },
+    { page: 'p-messages', icon: 'fa-envelope', label: 'Messages' },
+  ],
+  student: [
+    { page: 's-dashboard', icon: 'fa-house', label: 'Accueil' },
+    { page: 's-grades', icon: 'fa-pen-fancy', label: 'Notes' },
+    { page: 's-attendance', icon: 'fa-clipboard-check', label: 'Présences' },
+    { page: 's-bulletins', icon: 'fa-file-lines', label: 'Bulletins' },
+    { page: 's-homework', icon: 'fa-book-bookmark', label: 'Devoirs' },
+  ],
+  comptable: [
+    { page: 'c-dashboard', icon: 'fa-house', label: 'Accueil' },
+    { page: 'payments', icon: 'fa-money-bill-wave', label: 'Paiements' },
+    { page: 'debtors', icon: 'fa-hand-holding-dollar', label: 'Impayés' },
+    { page: 'students', icon: 'fa-user-graduate', label: 'Élèves' },
+    { page: 'p-settings', icon: 'fa-gear', label: 'Réglages' },
+  ],
+  teacher: [
+    { page: 't-dashboard', icon: 'fa-house', label: 'Accueil' },
+    { page: 't-grades', icon: 'fa-pen-fancy', label: 'Notes' },
+    { page: 't-attendance', icon: 'fa-clipboard-check', label: 'Appel' },
+    { page: 't-bulletins', icon: 'fa-file-lines', label: 'Bulletins' },
+    { page: 't-timetable', icon: 'fa-calendar-days', label: 'Planning' },
+  ],
+};
+
+function renderBottomNav() {
+  const nav = document.getElementById('bottom-nav');
+  if (!nav) return;
+  const items = BOTTOM_NAV_BY_PORTAL[state.portal] || BOTTOM_NAV_BY_PORTAL.admin;
+  nav.innerHTML = items.map(it =>
+    `<button class="bottom-nav-item" data-page="${it.page}" onclick="loadPage('${it.page}')" aria-label="${_fabEscape(it.label)}">` +
+    `<i class="fas ${it.icon}" aria-hidden="true"></i><span>${_fabEscape(it.label)}</span></button>`
+  ).join('');
+  // Marque l'élément actif selon la page courante
+  const cur = window._currentPage;
+  nav.querySelectorAll('.bottom-nav-item').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.page === cur);
+  });
 }
 
 function updateFab(page) {
