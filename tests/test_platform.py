@@ -118,23 +118,23 @@ class TestPlatformFreeze:
         ok = await client.post("/api/students", json=student_payload, headers=_headers(token))
         assert ok.status_code == 201
 
-        # Gel : lecture seule
+        # Gel : plus AUCUN accès (login + sessions coupées, données conservées)
         freeze = await client.post(
             f"/api/platform/schools/{school_id}/freeze", headers=_headers(editor)
         )
         assert freeze.status_code == 200
-        assert freeze.json()["status"] == "expired"
+        assert freeze.json()["is_active"] is False
 
         blocked = await client.post("/api/students", json=student_payload, headers=_headers(token))
-        assert blocked.status_code == 403
-        assert "expire" in blocked.json()["detail"].lower()
+        assert blocked.status_code == 423
+        assert "gel" in blocked.json()["detail"].lower()
 
-        # Dégel : écriture rétablie
+        # Dégel : accès rétabli
         unfreeze = await client.post(
             f"/api/platform/schools/{school_id}/unfreeze", headers=_headers(editor)
         )
         assert unfreeze.status_code == 200
-        assert unfreeze.json()["status"] == "trial"
+        assert unfreeze.json()["is_active"] is True
 
         ok2 = await client.post("/api/students", json=student_payload, headers=_headers(token))
         assert ok2.status_code == 201

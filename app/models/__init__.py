@@ -23,3 +23,4 @@ from app.models.teacher_subject import TeacherSubject  # noqa: F401
 from app.models.notification_setting import NotificationSetting  # noqa: F401
 from app.models.message import Conversation, ConversationParticipant, Message  # noqa: F401
 from app.models.discipline import DisciplinaryRuleSet, DisciplinaryRecord  # noqa: F401
+from app.models.platform import PlatformSetting, SubscriptionPayment, SupportRequest  # noqa: F401

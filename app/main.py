@@ -267,3 +267,12 @@ async def root():
     if os.path.isfile(index_path):
         return FileResponse(index_path, media_type="text/html", headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"})
     return {"service": "Yiriba SaaS", "version": "2.0.0", "docs": "/docs"}
+
+
+@app.get("/super-admin")
+async def super_admin():
+    """Console Super Admin YIRIBA (espace éditeur, séparé des portails écoles)."""
+    page = os.path.join(STATIC_DIR, "platform_admin.html")
+    if os.path.isfile(page):
+        return FileResponse(page, media_type="text/html", headers={"Cache-Control": "no-cache, no-store, must-revalidate", "Pragma": "no-cache", "Expires": "0"})
+    return {"service": "Yiriba SaaS", "error": "Console Super Admin indisponible"}

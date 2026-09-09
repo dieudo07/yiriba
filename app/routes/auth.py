@@ -186,6 +186,28 @@ async def login(
     if not user.is_active:
         raise HTTPException(status_code=403, detail="Compte désactivé")
 
+    # Blocage plateforme : école gelée par le Super Admin (423, données
+    # conservées) ou mode maintenance global (503). Les comptes YIRIBA
+    # (PLATFORM_ADMIN_EMAILS) contournent les deux.
+    if user.school_id is not None:
+        from app.core.config import get_settings as _gs
+        from app.models.school import School as _School
+        if not user.email or user.email.lower() not in _gs().platform_admin_emails:
+            _school = (await db.execute(
+                select(_School.is_active).where(_School.id == user.school_id)
+            )).first()
+            if _school and not _school.is_active:
+                raise HTTPException(
+                    status_code=423,
+                    detail="L'accès de votre établissement est temporairement gelé. Contactez l'équipe YIRIBA.",
+                )
+            from app.services.platform_service import is_maintenance
+            if await is_maintenance(db):
+                raise HTTPException(
+                    status_code=503,
+                    detail="YIRIBA est en maintenance. Réessayez dans quelques minutes.",
+                )
+
     # Défense en profondeur : un compte élève lié à un élève retiré /
     # transféré / diplômé ne doit pas pouvoir se connecter, même si le
     # compte User n'a pas encore été synchronisé. Le lien est Student.user_id.
@@ -317,6 +339,20 @@ async def refresh_token(
 
     if user is None or not user.is_active or user.status != UserStatus.ACTIVE:
         raise HTTPException(status_code=401, detail="Utilisateur invalide")
+
+    # Une école gelée ne peut pas renouveler son token (sauf comptes YIRIBA).
+    if user.school_id is not None:
+        from app.core.config import get_settings as _gs
+        from app.models.school import School as _School
+        if not user.email or user.email.lower() not in _gs().platform_admin_emails:
+            _school = (await db.execute(
+                select(_School.is_active).where(_School.id == user.school_id)
+            )).first()
+            if _school and not _school.is_active:
+                raise HTTPException(
+                    status_code=423,
+                    detail="L'accès de votre établissement est temporairement gelé.",
+                )
 
     token_data = {
         "sub": str(user.id),

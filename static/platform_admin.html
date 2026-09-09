@@ -3,12 +3,12 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>YIRIBA — Console Éditeur</title>
+  <title>YIRIBA — Super Admin</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="stylesheet" href="/static/style.css" />
   <style>
     html, body { height: 100%; }
-    body { background: var(--yiriba-ivoire); }
+    body { background: var(--yiriba-ivoire); margin: 0; }
 
     /* --- Auth screen --- */
     #auth-screen { align-items: center; justify-content: center; flex-direction: column; gap: 18px; display: flex; min-height: 100vh; }
@@ -19,88 +19,136 @@
     .auth-card input { width: 100%; padding: 10px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); }
     .auth-error { color: var(--yiriba-rouge); font-size: 13px; margin-top: 10px; min-height: 18px; }
 
-    /* --- Console --- */
-    #app-screen { display: none; }
-    .topbar { display: flex; align-items: center; justify-content: space-between; padding: 14px 28px; background: var(--yiriba-vert-foret); color: #fff; }
-    .topbar .brand { font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 10px; }
-    .topbar .user { font-size: 13px; color: var(--texte-sidebar); display: flex; align-items: center; gap: 14px; }
-    .topbar button { background: rgba(255,255,255,0.12); color: #fff; border: none; padding: 8px 14px; border-radius: var(--radius-sm); }
+    /* --- Layout console --- */
+    #app-screen { display: none; min-height: 100vh; }
+    .sa-layout { display: flex; min-height: 100vh; }
 
-    .container { max-width: 1200px; margin: 0 auto; padding: 28px; }
-    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr)); gap: 16px; margin-bottom: 24px; }
-    .card { background: var(--surface); border-radius: var(--radius-md); padding: 20px; box-shadow: var(--ombre-legere); }
+    /* Sidebar */
+    .sa-sidebar { width: 240px; background: var(--yiriba-vert-foret); color: #fff; display: flex; flex-direction: column; flex-shrink: 0; }
+    .sa-brand { padding: 22px 20px 16px; border-bottom: 1px solid rgba(255,255,255,0.12); }
+    .sa-brand .name { font-weight: 700; font-size: 18px; display: flex; align-items: center; gap: 8px; }
+    .sa-brand .sub { font-size: 12px; color: var(--yiriba-jaune); font-weight: 600; letter-spacing: .08em; text-transform: uppercase; margin-top: 3px; }
+    .sa-nav { flex: 1; padding: 14px 10px; display: flex; flex-direction: column; gap: 2px; overflow-y: auto; }
+    .sa-nav button { display: flex; align-items: center; gap: 10px; width: 100%; padding: 10px 12px; border: none; background: none; color: var(--texte-sidebar); font-size: 14px; border-radius: var(--radius-sm); cursor: pointer; text-align: left; transition: background .15s; }
+    .sa-nav button:hover { background: rgba(255,255,255,0.08); }
+    .sa-nav button.active { background: rgba(255,255,255,0.14); color: #fff; font-weight: 600; }
+    .sa-nav button .ico { width: 20px; text-align: center; }
+    .sa-nav button .nbadge { margin-left: auto; background: var(--yiriba-jaune); color: var(--yiriba-vert-foret); font-size: 11px; font-weight: 700; border-radius: 999px; padding: 1px 7px; }
+    .sa-foot { padding: 14px; border-top: 1px solid rgba(255,255,255,0.12); }
+    .sa-foot .who { font-size: 13px; color: var(--texte-sidebar); margin-bottom: 10px; word-break: break-all; }
+    .sa-foot button { width: 100%; padding: 8px; border: 1px solid rgba(255,255,255,0.25); background: none; color: #fff; border-radius: var(--radius-sm); font-size: 13px; cursor: pointer; }
+    .sa-foot button:hover { background: rgba(255,255,255,0.1); }
+
+    /* Content */
+    .sa-content { flex: 1; padding: 28px 32px; min-width: 0; }
+    .sa-hello h1 { color: var(--yiriba-vert-foret); margin: 0 0 4px; font-size: 24px; }
+    .sa-hello p { color: var(--texte-secondaire); margin: 0 0 22px; font-size: 14px; }
+
+    .cards { display: grid; grid-template-columns: repeat(auto-fit, minmax(165px, 1fr)); gap: 14px; margin-bottom: 24px; }
+    .card { background: var(--surface); border-radius: var(--radius-md); padding: 18px; box-shadow: var(--ombre-legere); }
     .card .k { font-size: 12px; color: var(--texte-secondaire); text-transform: uppercase; letter-spacing: .04em; }
-    .card .v { font-size: 28px; font-weight: 700; color: var(--yiriba-vert-foret); margin-top: 6px; }
+    .card .v { font-size: 26px; font-weight: 700; color: var(--yiriba-vert-foret); margin-top: 6px; }
     .card .v.ok { color: var(--yiriba-vert-feuille); }
-    .card .v.warn { color: var(--yiriba-jaune); }
+    .card .v.warn { color: #b98a00; }
     .card .v.bad { color: var(--yiriba-rouge); }
 
-    .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-    .toolbar input { padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); width: 300px; }
-    .toolbar button { background: var(--yiriba-vert); color: #fff; border: none; padding: 9px 16px; border-radius: var(--radius-sm); }
+    .sa-section { background: var(--surface); border-radius: var(--radius-md); box-shadow: var(--ombre-legere); padding: 20px 22px; margin-bottom: 20px; }
+    .sa-section h3 { color: var(--yiriba-vert-foret); margin: 0 0 14px; font-size: 16px; }
+    .sa-two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+
+    .toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
+    .toolbar input, .toolbar select { padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--surface); font-size: 14px; }
+    .toolbar input { width: 280px; }
+    .toolbar button { background: var(--yiriba-vert); color: #fff; border: none; padding: 9px 16px; border-radius: var(--radius-sm); cursor: pointer; }
+    .toolbar button.ghost { background: var(--surface); color: var(--yiriba-vert); border: 1px solid var(--border); }
 
     table { width: 100%; border-collapse: collapse; background: var(--surface); border-radius: var(--radius-md); overflow: hidden; box-shadow: var(--ombre-legere); }
-    th, td { text-align: left; padding: 12px 14px; border-bottom: 1px solid var(--border); font-size: 14px; }
+    th, td { text-align: left; padding: 11px 13px; border-bottom: 1px solid var(--border); font-size: 14px; }
     th { background: var(--surface-soft); color: var(--texte-secondaire); font-size: 12px; text-transform: uppercase; letter-spacing: .04em; }
     tr:hover td { background: rgba(47,143,91,0.05); }
 
-    .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; }
+    .badge { display: inline-block; padding: 4px 10px; border-radius: 999px; font-size: 12px; font-weight: 600; white-space: nowrap; }
     .b-trial { background: #FFF6D6; color: #8a6d00; }
     .b-active { background: #E2F4EA; color: var(--yiriba-vert-feuille); }
     .b-expired { background: #FBE4DF; color: var(--yiriba-rouge); }
+    .b-frozen { background: #ECECEC; color: #555; }
     .b-cancelled { background: #EFECE5; color: var(--texte-secondaire); }
-    .b-read { background: #EFECE5; color: var(--texte-secondaire); }
-    .b-full { background: #E2F4EA; color: var(--yiriba-vert-feuille); }
+    .b-suspended { background: #FBE4DF; color: var(--yiriba-rouge); }
+    .b-pending { background: #FFF6D6; color: #8a6d00; }
+    .b-failed { background: #FBE4DF; color: var(--yiriba-rouge); }
+    .b-refunded { background: #EFECE5; color: var(--texte-secondaire); }
+    .b-paid { background: #E2F4EA; color: var(--yiriba-vert-feuille); }
+    .b-new { background: #FFF6D6; color: #8a6d00; }
+    .b-in_progress { background: #E3EEFA; color: #2b5c9a; }
+    .b-resolved { background: #E2F4EA; color: var(--yiriba-vert-feuille); }
 
-    .actions button { margin-right: 6px; border: 1px solid var(--border); background: var(--surface); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 12px; }
+    .actions button { margin-right: 5px; margin-bottom: 4px; border: 1px solid var(--border); background: var(--surface); padding: 5px 10px; border-radius: var(--radius-sm); font-size: 12px; cursor: pointer; }
     .actions button.primary { background: var(--yiriba-vert); color: #fff; border-color: var(--yiriba-vert); }
     .actions button.danger { color: var(--yiriba-rouge); border-color: rgba(201,74,53,0.4); }
+    .actions button.warn { color: #8a6d00; border-color: rgba(216,168,0,0.5); }
 
     .pager { margin-top: 14px; display: flex; justify-content: flex-end; gap: 8px; align-items: center; color: var(--texte-secondaire); font-size: 14px; }
-    .pager button { border: 1px solid var(--border); background: var(--surface); padding: 6px 12px; border-radius: var(--radius-sm); }
+    .pager button { border: 1px solid var(--border); background: var(--surface); padding: 6px 12px; border-radius: var(--radius-sm); cursor: pointer; }
+    .pager button:disabled { opacity: .45; cursor: default; }
 
-    /* --- Modal --- */
+    /* Pages */
+    .sa-page { display: none; }
+    .sa-page.active { display: block; }
+
+    /* Modal */
     .modal-backdrop { position: fixed; inset: 0; background: rgba(8,61,43,0.45); display: none; align-items: center; justify-content: center; z-index: 50; }
     .modal-backdrop.open { display: flex; }
-    .modal { background: var(--surface); border-radius: var(--radius-lg); max-width: 640px; width: 92%; max-height: 88vh; overflow: auto; padding: 28px; box-shadow: 0 24px 60px rgba(8,61,43,0.25); }
+    .modal { background: var(--surface); border-radius: var(--radius-lg); max-width: 680px; width: 92%; max-height: 88vh; overflow: auto; padding: 26px; box-shadow: 0 24px 60px rgba(8,61,43,0.25); }
     .modal h3 { color: var(--yiriba-vert-foret); margin-bottom: 16px; }
-    .modal .row { display: flex; justify-content: space-between; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+    .modal .row { display: flex; justify-content: space-between; gap: 14px; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
     .modal .row .k { color: var(--texte-secondaire); }
-    .modal select, .modal input { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-top: 6px; }
+    .modal select, .modal input, .modal textarea { width: 100%; padding: 9px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); margin-top: 6px; font-family: inherit; }
     .modal .form-group { margin-top: 14px; }
     .modal .form-group label { font-size: 13px; font-weight: 600; display: block; }
     .modal .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 22px; }
-    .modal .form-actions button { padding: 9px 16px; border-radius: var(--radius-sm); border: none; }
+    .modal .form-actions button { padding: 9px 16px; border-radius: var(--radius-sm); border: none; cursor: pointer; }
     .modal .form-actions .btn-primary { background: var(--yiriba-vert); color: #fff; }
     .modal .form-actions .btn-ghost { background: var(--surface-soft); color: var(--texte); }
-    .btn-close { float: right; background: none; border: none; font-size: 20px; color: var(--texte-secondaire); }
+    .modal .form-actions .btn-danger { background: var(--yiriba-rouge); color: #fff; }
+    .btn-close { float: right; background: none; border: none; font-size: 20px; color: var(--texte-secondaire); cursor: pointer; }
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 8px; }
+    .detail-grid h4 { color: var(--yiriba-vert-foret); margin: 10px 0 8px; font-size: 15px; }
+    .code { font-family: monospace; background: var(--surface-soft); padding: 2px 6px; border-radius: 4px; }
 
-    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--yiriba-vert-foret); color: #fff; padding: 12px 18px; border-radius: var(--radius-md); box-shadow: var(--ombre-legere); display: none; z-index: 60; max-width: 400px; }
+    .toast { position: fixed; bottom: 24px; right: 24px; background: var(--yiriba-vert-foret); color: #fff; padding: 12px 18px; border-radius: var(--radius-md); box-shadow: var(--ombre-legere); display: none; z-index: 60; max-width: 420px; font-size: 14px; }
     .toast.show { display: block; }
     .toast.error { background: var(--yiriba-rouge); }
 
-    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; margin-top: 16px; }
-    .detail-grid h4 { color: var(--yiriba-vert-foret); margin: 10px 0; font-size: 15px; }
-    .detail-grid table, .detail-grid .box { background: var(--surface-soft); }
-    .detail-grid th, .detail-grid td { background: transparent; }
-    .code { font-family: monospace; background: var(--surface-soft); padding: 2px 6px; border-radius: 4px; }
-    .temp-pass { background: #FFF6D6; border: 1px dashed #d8a800; border-radius: var(--radius-sm); padding: 12px; margin-top: 12px; font-size: 14px; }
-    .temp-pass .tp { font-weight: 700; font-size: 18px; letter-spacing: .06em; }
-    @media (max-width: 900px) { .detail-grid { grid-template-columns: 1fr; } .toolbar input { width: 100%; } }
+    .empty { text-align: center; color: var(--texte-secondaire); padding: 28px 10px; font-size: 14px; }
+    .switch { position: relative; display: inline-flex; align-items: center; gap: 10px; cursor: pointer; font-size: 14px; }
+    .switch input { width: 40px; height: 22px; appearance: none; background: #ccc; border-radius: 999px; position: relative; cursor: pointer; transition: background .2s; }
+    .switch input::after { content: ''; position: absolute; top: 2px; left: 2px; width: 18px; height: 18px; background: #fff; border-radius: 50%; transition: left .2s; }
+    .switch input:checked { background: var(--yiriba-vert); }
+    .switch input:checked::after { left: 20px; }
+
+    @media (max-width: 900px) {
+      .sa-sidebar { width: 64px; }
+      .sa-brand .name span, .sa-brand .sub, .sa-nav button .lbl, .sa-foot .who { display: none; }
+      .sa-nav button { justify-content: center; }
+      .sa-content { padding: 18px; }
+      .sa-two-col { grid-template-columns: 1fr; }
+      .detail-grid { grid-template-columns: 1fr; }
+      .toolbar input { width: 100%; }
+    }
   </style>
 </head>
 <body>
   <!-- AUTH -->
   <div id="auth-screen">
     <div class="auth-card">
-      <h2>Console Éditeur YIRIBA</h2>
-      <p>Espace réservé à l'administration plateforme.</p>
+      <h2>🌳 YIRIBA — Super Admin</h2>
+      <p>Espace réservé au propriétaire de la plateforme. Accès strictement personnel.</p>
       <form id="auth-form">
         <label for="email">Email</label>
         <input type="email" id="email" autocomplete="username" required />
         <label for="password">Mot de passe</label>
         <input type="password" id="password" autocomplete="current-password" required />
-        <button type="submit" style="width:100%; margin-top:20px; background:var(--yiriba-vert); color:#fff; border:none; padding:11px; border-radius:var(--radius-sm); font-weight:600;">Se connecter</button>
+        <button type="submit" style="width:100%; margin-top:20px; background:var(--yiriba-vert); color:#fff; border:none; padding:11px; border-radius:var(--radius-sm); font-weight:600; cursor:pointer;">Se connecter</button>
       </form>
       <div class="auth-error" id="auth-error"></div>
     </div>
@@ -108,56 +156,225 @@
 
   <!-- CONSOLE -->
   <div id="app-screen">
-    <div class="topbar">
-      <div class="brand">🌳 YIRIBA — Console Éditeur</div>
-      <div class="user">
-        <span id="user-email"></span>
-        <button id="logout-btn">Déconnexion</button>
-      </div>
-    </div>
+    <div class="sa-layout">
+      <aside class="sa-sidebar">
+        <div class="sa-brand">
+          <div class="name">🌳 <span>YIRIBA</span></div>
+          <div class="sub">Super Admin</div>
+        </div>
+        <nav class="sa-nav" id="sa-nav">
+          <button data-page="dashboard" class="active"><span class="ico">📊</span><span class="lbl">Tableau de bord</span></button>
+          <button data-page="schools"><span class="ico">🏫</span><span class="lbl">Écoles</span></button>
+          <button data-page="users"><span class="ico">👥</span><span class="lbl">Utilisateurs</span></button>
+          <button data-page="subscriptions"><span class="ico">💳</span><span class="lbl">Abonnements</span></button>
+          <button data-page="payments"><span class="ico">💰</span><span class="lbl">Paiements</span></button>
+          <button data-page="activity"><span class="ico">📜</span><span class="lbl">Activité</span></button>
+          <button data-page="support"><span class="ico">🎧</span><span class="lbl">Support</span><span class="nbadge" id="support-badge" style="display:none">0</span></button>
+          <button data-page="notifications"><span class="ico">🔔</span><span class="lbl">Notifications</span></button>
+          <button data-page="settings"><span class="ico">⚙️</span><span class="lbl">Paramètres</span></button>
+        </nav>
+        <div class="sa-foot">
+          <div class="who" id="user-email"></div>
+          <button id="logout-btn">Se déconnecter</button>
+        </div>
+      </aside>
 
-    <div class="container">
-      <div class="cards" id="cards"></div>
+      <main class="sa-content">
+        <!-- DASHBOARD -->
+        <section class="sa-page active" id="page-dashboard">
+          <div class="sa-hello">
+            <h1>Bonjour, Admin 👋</h1>
+            <p>Voici l'état actuel de votre plateforme YIRIBA.</p>
+          </div>
+          <div class="cards" id="cards"></div>
+          <div class="sa-two-col">
+            <div class="sa-section">
+              <h3>Activité récente</h3>
+              <div id="recent-activity"><p class="empty">Chargement…</p></div>
+            </div>
+            <div class="sa-section">
+              <h3>État des abonnements</h3>
+              <div id="subs-state"><p class="empty">Chargement…</p></div>
+            </div>
+          </div>
+        </section>
 
-      <div class="toolbar">
-        <input type="search" id="search" placeholder="Rechercher une école (nom, slug, ville)…" />
-        <button id="search-btn">Rechercher</button>
-        <button id="refresh-btn" style="background:var(--surface); color:var(--yiriba-vert); border:1px solid var(--border);">⟳ Actualiser</button>
-      </div>
+        <!-- SCHOOLS -->
+        <section class="sa-page" id="page-schools">
+          <div class="sa-hello"><h1>Écoles</h1><p>Tous les établissements clients de la plateforme.</p></div>
+          <div class="toolbar">
+            <input type="search" id="search" placeholder="Rechercher une école…" />
+            <select id="filter-status">
+              <option value="">Toutes</option>
+              <option value="active">Actives</option>
+              <option value="frozen">Suspendues</option>
+              <option value="expired">Expirées</option>
+            </select>
+            <button id="search-btn">Rechercher</button>
+            <button class="ghost" id="refresh-btn">⟳ Actualiser</button>
+          </div>
+          <table>
+            <thead><tr><th>École</th><th>Statut</th><th>Abonnement</th><th>Élèves</th><th>Utilisateurs</th><th>Inscrite le</th><th>Actions</th></tr></thead>
+            <tbody id="schools-body"></tbody>
+          </table>
+          <div class="pager" id="pager"></div>
+        </section>
 
-      <table>
-        <thead>
-          <tr>
-            <th>École</th>
-            <th>Plan</th>
-            <th>Statut</th>
-            <th>Accès</th>
-            <th>Élèves</th>
-            <th>Utilisateurs</th>
-            <th>Inscrite le</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody id="schools-body"></tbody>
-      </table>
-      <div class="pager" id="pager"></div>
+        <!-- USERS -->
+        <section class="sa-page" id="page-users">
+          <div class="sa-hello"><h1>Utilisateurs</h1><p>Tous les comptes de toutes les écoles.</p></div>
+          <div class="toolbar">
+            <input type="search" id="users-search" placeholder="Rechercher (nom, email, identifiant)…" />
+            <select id="users-school"><option value="">Toutes les écoles</option></select>
+            <select id="users-role">
+              <option value="">Tous les rôles</option>
+              <option value="admin">Admin école</option>
+              <option value="teacher">Enseignant</option>
+              <option value="student">Élève</option>
+              <option value="parent">Parent/Tuteur</option>
+              <option value="secretary">Secrétaire</option>
+              <option value="accountant">Comptable</option>
+              <option value="educator">Éducateur</option>
+            </select>
+            <select id="users-status">
+              <option value="">Tous les statuts</option>
+              <option value="active">Actifs</option>
+              <option value="suspended">Suspendus</option>
+            </select>
+            <button id="users-btn">Filtrer</button>
+          </div>
+          <table>
+            <thead><tr><th>Nom</th><th>Identifiant</th><th>École</th><th>Rôle</th><th>Statut</th><th>Dernière connexion</th><th>Actions</th></tr></thead>
+            <tbody id="users-body"></tbody>
+          </table>
+          <div class="pager" id="users-pager"></div>
+        </section>
+
+        <!-- SUBSCRIPTIONS -->
+        <section class="sa-page" id="page-subscriptions">
+          <div class="sa-hello"><h1>Abonnements</h1><p>Formules et échéances de chaque école.</p></div>
+          <div class="toolbar">
+            <input type="search" id="subs-search" placeholder="Rechercher une école…" />
+            <select id="subs-status">
+              <option value="">Tous les statuts</option>
+              <option value="active">Actifs</option>
+              <option value="expiring_soon">Expirent bientôt</option>
+              <option value="expired">Expirés</option>
+              <option value="cancelled">Suspendus</option>
+            </select>
+            <button id="subs-btn">Filtrer</button>
+          </div>
+          <table>
+            <thead><tr><th>École</th><th>Formule</th><th>Début</th><th>Expiration</th><th>Statut</th><th>Montant</th><th>Actions</th></tr></thead>
+            <tbody id="subs-body"></tbody>
+          </table>
+          <div class="pager" id="subs-pager"></div>
+        </section>
+
+        <!-- PAYMENTS -->
+        <section class="sa-page" id="page-payments">
+          <div class="sa-hello"><h1>Paiements</h1><p>Paiements d'abonnement reçus des écoles.</p></div>
+          <div class="toolbar">
+            <input type="search" id="pay-search" placeholder="Référence…" />
+            <select id="pay-status">
+              <option value="">Tous les statuts</option>
+              <option value="paid">Payés</option>
+              <option value="pending">En attente</option>
+              <option value="failed">Échoués</option>
+              <option value="refunded">Remboursés</option>
+            </select>
+            <button id="pay-btn">Filtrer</button>
+            <button class="ghost" id="pay-new">＋ Enregistrer un paiement</button>
+          </div>
+          <table>
+            <thead><tr><th>École</th><th>Référence</th><th>Montant</th><th>Date</th><th>Moyen</th><th>Statut</th></tr></thead>
+            <tbody id="pay-body"></tbody>
+          </table>
+          <div class="pager" id="pay-pager"></div>
+        </section>
+
+        <!-- ACTIVITY -->
+        <section class="sa-page" id="page-activity">
+          <div class="sa-hello"><h1>Activité</h1><p>Journal des actions importantes de la plateforme.</p></div>
+          <table>
+            <thead><tr><th>Date</th><th>Utilisateur</th><th>Action</th><th>École</th><th>Détails</th></tr></thead>
+            <tbody id="activity-body"></tbody>
+          </table>
+          <div class="pager" id="activity-pager"></div>
+        </section>
+
+        <!-- SUPPORT -->
+        <section class="sa-page" id="page-support">
+          <div class="sa-hello"><h1>Support</h1><p>Demandes envoyées par les écoles.</p></div>
+          <div class="toolbar">
+            <select id="support-status">
+              <option value="">Tous les statuts</option>
+              <option value="new">Nouvelles</option>
+              <option value="in_progress">En cours</option>
+              <option value="resolved">Résolues</option>
+            </select>
+            <button id="support-btn">Filtrer</button>
+          </div>
+          <table>
+            <thead><tr><th>École</th><th>Sujet</th><th>Date</th><th>Priorité</th><th>Statut</th><th>Actions</th></tr></thead>
+            <tbody id="support-body"></tbody>
+          </table>
+        </section>
+
+        <!-- NOTIFICATIONS -->
+        <section class="sa-page" id="page-notifications">
+          <div class="sa-hello"><h1>Notifications</h1><p>Alertes importantes de la plateforme.</p></div>
+          <div class="toolbar"><button class="ghost" id="notif-read-all">Tout marquer comme lu</button></div>
+          <div id="notif-list" class="sa-section"><p class="empty">Chargement…</p></div>
+        </section>
+
+        <!-- SETTINGS -->
+        <section class="sa-page" id="page-settings">
+          <div class="sa-hello"><h1>Paramètres</h1><p>Configuration générale de la plateforme YIRIBA.</p></div>
+          <div class="sa-section">
+            <h3>Profil & configuration</h3>
+            <div class="form-group" style="max-width:420px">
+              <label>Nom de la plateforme</label>
+              <input type="text" id="set-name" />
+            </div>
+            <div class="form-group" style="max-width:420px">
+              <label>Email de contact</label>
+              <input type="email" id="set-email" />
+            </div>
+            <div class="form-group">
+              <label class="switch"><input type="checkbox" id="set-maintenance" /> Mode maintenance (toute la plateforme)</label>
+              <p style="color:var(--texte-secondaire);font-size:13px;margin:8px 0 0;">Les utilisateurs classiques verront une page de maintenance. Votre accès Super Admin reste actif. Aucune donnée n'est affectée.</p>
+            </div>
+            <div style="margin-top:18px"><button class="toolbar" id="set-save" style="background:var(--yiriba-vert); color:#fff; border:none; padding:10px 18px; border-radius:var(--radius-sm); cursor:pointer;">Enregistrer</button></div>
+          </div>
+        </section>
+      </main>
     </div>
   </div>
 
-  <!-- DÉTAIL MODAL -->
+  <!-- DÉTAIL ÉCOLE -->
   <div class="modal-backdrop" id="detail-modal">
-    <div class="modal">
+    <div class="modal" style="max-width:820px">
       <button class="btn-close" id="detail-close">✕</button>
       <h3 id="detail-title">Détail de l'école</h3>
       <div id="detail-content"></div>
     </div>
   </div>
 
-  <!-- CONFIRM MODAL -->
+  <!-- DONNÉES D'UNE ÉCOLE -->
+  <div class="modal-backdrop" id="data-modal">
+    <div class="modal" style="max-width:960px">
+      <button class="btn-close" id="data-close">✕</button>
+      <h3 id="data-title">Données de l'école</h3>
+      <div id="data-body"><p style="color:#777">Chargement…</p></div>
+    </div>
+  </div>
+
+  <!-- CONFIRM -->
   <div class="modal-backdrop" id="confirm-modal">
     <div class="modal" style="max-width:460px;">
       <h3 id="confirm-title">Confirmer</h3>
-      <p id="confirm-text"></p>
+      <p id="confirm-text" style="font-size:14px; line-height:1.5;"></p>
       <div class="form-actions">
         <button class="btn-ghost" id="confirm-cancel">Annuler</button>
         <button class="btn-primary" id="confirm-ok">Confirmer</button>
@@ -165,7 +382,7 @@
     </div>
   </div>
 
-  <!-- PLAN MODAL -->
+  <!-- PLAN -->
   <div class="modal-backdrop" id="plan-modal">
     <div class="modal" style="max-width:480px;">
       <button class="btn-close" id="plan-close">✕</button>
@@ -186,9 +403,81 @@
         <label for="plan-amount">Montant forfaitaire négocié (Baobab, optionnel)</label>
         <input type="text" id="plan-amount" placeholder="ex : 1500000" />
       </div>
+      <div class="form-group">
+        <label for="plan-days">Prolonger l'abonnement de… (jours, optionnel)</label>
+        <input type="number" id="plan-days" min="1" max="3650" placeholder="ex : 365" />
+      </div>
       <div class="form-actions">
         <button class="btn-ghost" id="plan-close2">Annuler</button>
         <button class="btn-primary" id="plan-save">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- PAIEMENT MANUEL -->
+  <div class="modal-backdrop" id="pay-modal">
+    <div class="modal" style="max-width:480px;">
+      <button class="btn-close" id="paym-close">✕</button>
+      <h3>Enregistrer un paiement</h3>
+      <div class="form-group">
+        <label for="paym-school">École</label>
+        <select id="paym-school"></select>
+      </div>
+      <div class="form-group">
+        <label for="paym-amount">Montant (XOF)</label>
+        <input type="number" id="paym-amount" min="1" />
+      </div>
+      <div class="form-group">
+        <label for="paym-method">Moyen de paiement</label>
+        <select id="paym-method">
+          <option value="cash">Espèces</option>
+          <option value="transfer">Virement</option>
+          <option value="mobile_money">Mobile money</option>
+          <option value="check">Chèque</option>
+          <option value="other">Autre</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="paym-status">Statut</label>
+        <select id="paym-status">
+          <option value="paid">Payé</option>
+          <option value="pending">En attente</option>
+          <option value="failed">Échoué</option>
+          <option value="refunded">Remboursé</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="paym-note">Commentaire (optionnel)</label>
+        <input type="text" id="paym-note" />
+      </div>
+      <div class="form-actions">
+        <button class="btn-ghost" id="paym-close2">Annuler</button>
+        <button class="btn-primary" id="paym-save">Enregistrer</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- SUPPORT -->
+  <div class="modal-backdrop" id="support-modal">
+    <div class="modal" style="max-width:560px;">
+      <button class="btn-close" id="support-close">✕</button>
+      <h3 id="support-title">Demande de support</h3>
+      <div id="support-content"></div>
+      <div class="form-group">
+        <label for="support-response">Réponse</label>
+        <textarea id="support-response" rows="4"></textarea>
+      </div>
+      <div class="form-group">
+        <label for="support-new-status">Statut</label>
+        <select id="support-new-status">
+          <option value="new">Nouveau</option>
+          <option value="in_progress">En cours</option>
+          <option value="resolved">Résolu</option>
+        </select>
+      </div>
+      <div class="form-actions">
+        <button class="btn-ghost" id="support-close2">Fermer</button>
+        <button class="btn-primary" id="support-save">Enregistrer</button>
       </div>
     </div>
   </div>

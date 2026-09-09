@@ -74,6 +74,29 @@ async def get_current_user(
         if student and student.status != StudentStatus.ACTIVE:
             raise HTTPException(status_code=403, detail="Ce compte élève n'est plus actif")
 
+    # Défense en profondeur : une école GELÉE par le Super Admin perd l'accès
+    # à toutes ses sessions actives (login ET API), sans perte de données.
+    # Les comptes plateforme (email dans PLATFORM_ADMIN_EMAILS) contournent
+    # ce blocage ainsi que le mode maintenance.
+    if user.school_id is not None:
+        from app.core.config import get_settings as _gs
+        if not user.email or user.email.lower() not in _gs().platform_admin_emails:
+            from app.models.school import School
+            school = (await db.execute(
+                select(School.is_active).where(School.id == user.school_id)
+            )).first()
+            if school and not school.is_active:
+                raise HTTPException(
+                    status_code=423,
+                    detail="L'accès de votre établissement est temporairement gelé. Contactez l'équipe YIRIBA.",
+                )
+            from app.services.platform_service import is_maintenance
+            if await is_maintenance(db):
+                raise HTTPException(
+                    status_code=503,
+                    detail="YIRIBA est en maintenance. Réessayez dans quelques minutes.",
+                )
+
     # Attach school_id from token (never from client)
     user._school_id_from_token = payload.get("school_id")
     return user
